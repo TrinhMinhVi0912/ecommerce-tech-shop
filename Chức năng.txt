@@ -1,0 +1,119 @@
+Public (Khách chưa đăng nhập)
+Trang chủ
+Hiển thị banner / khuyến mãi
+Danh mục sản phẩm (Laptop, Gaming, Phụ kiện…)
+Sản phẩm nổi bật / bán chạy / mới nhất
+
+Danh sách sản phẩm
+
+Hiển thị danh sách laptop
+    Phân trang
+    Bộ lọc (quan trọng)
+    Theo hãng (Dell, ASUS, MSI…)
+    CPU, RAM, GPU
+    Giá
+    Màn hình (size, Hz)
+    Ổ cứng (SSD/HDD)
+
+Tìm kiếm
+    Search theo tên sản phẩm    
+    Gợi ý khi nhập (autocomplete)
+
+
+Trang chi tiết sản phẩm
+    Ảnh sản phẩm
+    Thông số kỹ thuật
+    Giá + khuyến mãi
+    Chọn cấu hình (variant)
+    Thêm vào giỏ hàng
+    Sản phẩm liên quan
+    Đánh giá / nhận xét
+
+-------------------------------------------
+Người dùng (User)
+    Xác thực
+    Đăng ký
+    Đăng nhập
+    Đăng xuất
+    Quên mật khẩu
+
+Hồ sơ cá nhân
+    Cập nhật thông tin
+    Đổi mật khẩu
+    Quản lý địa chỉ giao hàng
+Giỏ hàng & Thanh toán
+    Giỏ hàng
+    Thêm sản phẩm
+    Cập nhật số lượng
+    Xóa sản phẩm
+
+Checkout
+    Nhập địa chỉ
+    Chọn phương thức thanh toán
+    Áp mã giảm giá
+    Xác nhận đơn hàng
+
+Thanh toán
+    COD
+    Thanh toán online (VNPay sandbox – nếu có)
+
+Đơn hàng
+    Người dùng
+    Xem danh sách đơn hàng
+    Xem chi tiết đơn
+    Hủy đơn
+    Theo dõi trạng thái:Pending,Paid,Shipping,Completed,Cancelled
+
+Tính năng nâng cao
+    Wishlist
+    Thêm sản phẩm yêu thích
+    Xem danh sách wishlist
+    Review / Rating
+    Đánh giá sản phẩm
+    Chấm sao
+    Bình luận
+    So sánh sản phẩm
+    So sánh nhiều laptop theo cấu hình
+-------------------------------------------
+Admin
+Dashboard
+    Tổng doanh thu
+    Tổng đơn hàng
+    Sản phẩm bán chạy
+
+Quản lý sản phẩm
+    Thêm / sửa / xóa sản phẩm
+
+Quản lý cấu hình (variant)
+    Upload ảnh
+
+Quản lý đơn hàng
+    Xem danh sách đơn
+    Cập nhật trạng thái
+
+Quản lý người dùng
+    Xem user
+    Khóa tài khoản
+
+Quản lý danh mục / hãng
+    CRUD category
+    CRUD brand
+
+Quản lý khuyến mãi
+    Tạo mã giảm giá
+    Flash sale
+-------------------------------------------
+Business Logic (Lưu ý)
+    Kiểm tra tồn kho khi đặt hàng
+    Trừ kho khi order thành công
+    Không cho đặt vượt số lượng (oversell)
+    Validate coupon (hạn sử dụng, số lần dùng)
+    Xử lý callback thanh toán
+    Luồng trạng thái đơn hàng hợp lệ
+-------------------------------------------
+
+Nâng cao (nếu muốn nổi bật hơn)
+Gợi ý sản phẩm (recommendation)
+Email xác nhận đơn hàng
+Realtime (stock / order)
+Chat hỗ trợ

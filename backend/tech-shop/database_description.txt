@@ -1,0 +1,179 @@
+👤 1. USERS
+👉 Chức năng: Lưu thông tin tài khoản người dùng
+| Thuộc tính   | Kiểu         | Mô tả                    |
+| ------------ | ------------ | ------------------------ |
+| user_id (PK) | CHAR(36)     | ID người dùng (UUID)     |
+| role_id (FK) | INT          | Vai trò (admin/user)     |
+| email        | VARCHAR(255) | Email đăng nhập (unique) |
+| password     | VARCHAR(255) | Mật khẩu đã mã hóa       |
+| full_name    | VARCHAR(120) | Họ tên                   |
+| phone        | VARCHAR(20)  | Số điện thoại            |
+| created_at   | DATETIME     | Ngày tạo tài khoản       |
+
+🔐 2. ROLES
+👉 Chức năng: Phân quyền người dùng
+| Thuộc tính   | Kiểu        | Mô tả        |
+| ------------ | ----------- | ------------ |
+| role_id (PK) | INT         | ID role      |
+| name         | VARCHAR(25) | ADMIN / USER |
+
+📍 3. ADDRESSES
+👉 Chức năng: Lưu địa chỉ giao hàng
+| Thuộc tính      | Kiểu         | Mô tả            |
+| --------------- | ------------ | ---------------- |
+| address_id (PK) | INT          | ID địa chỉ       |
+| user_id (FK)    | CHAR(36)     | Thuộc user       |
+| address_line    | VARCHAR(255) | Địa chỉ chi tiết |
+| city            | VARCHAR(255) | Thành phố        |
+| district        | VARCHAR(255) | Quận/huyện       |
+| is_default      | BOOLEAN      | Địa chỉ mặc định |
+
+❤️ 4. WISHLIST
+👉 Chức năng: Danh sách sản phẩm yêu thích
+| Thuộc tính          | Kiểu     | Mô tả      |
+| ------------------- | -------- | ---------- |
+| user_id (PK, FK)    | CHAR(36) | Người dùng |
+| product_id (PK, FK) | INT      | Sản phẩm   |
+
+⭐ 5. REVIEWS
+👉 Chức năng: Đánh giá sản phẩm
+| Thuộc tính      | Kiểu          | Mô tả             |
+| --------------- | ------------- | ----------------- |
+| review_id (PK)  | INT           | ID đánh giá       |
+| user_id (FK)    | CHAR(36)      | Người đánh giá    |
+| product_id (FK) | INT           | Sản phẩm          |
+| rating          | INT           | Số sao (1–5)      |
+| comment         | VARCHAR(1024) | Nội dung đánh giá |
+
+📂 6. CATEGORIES
+👉 Chức năng: Phân loại sản phẩm
+| Thuộc tính         | Kiểu         | Mô tả        |
+| ------------------ | ------------ | ------------ |
+| categories_id (PK) | INT          | ID danh mục  |
+| parent_id (FK)     | INT          | Danh mục cha |
+| name               | VARCHAR(255) | Tên danh mục |
+
+🏷️ 7. BRAND
+👉 Chức năng: Hãng sản phẩm
+| Thuộc tính    | Kiểu         | Mô tả    |
+| ------------- | ------------ | -------- |
+| brand_id (PK) | INT          | ID hãng  |
+| name          | VARCHAR(255) | Tên hãng |
+
+💻 8. PRODUCT
+👉 Chức năng: Thông tin sản phẩm
+| Thuộc tính         | Kiểu         | Mô tả        |
+| ------------------ | ------------ | ------------ |
+| product_id (PK)    | INT          | ID sản phẩm  |
+| brand_id (FK)      | INT          | Hãng         |
+| categories_id (FK) | INT          | Danh mục     |
+| name               | VARCHAR(255) | Tên sản phẩm |
+| description        | TEXT         | Mô tả        |
+| base_price         | INT          | Giá cơ bản   |
+| created_at         | DATETIME     | Ngày tạo     |
+
+🖼️ 9. PRODUCT_IMG
+👉 Chức năng: Ảnh sản phẩm
+| Thuộc tính      | Kiểu          | Mô tả         |
+| --------------- | ------------- | ------------- |
+| img_id (PK)     | INT           | ID ảnh        |
+| product_id (FK) | INT           | Sản phẩm      |
+| image_path      | VARCHAR(1024) | Đường dẫn ảnh |
+
+⚙️ 10. PRODUCT_VARIANTS
+👉 Chức năng: Các cấu hình sản phẩm
+| Thuộc tính      | Kiểu         | Mô tả          |
+| --------------- | ------------ | -------------- |
+| variant_id (PK) | INT          | ID biến thể    |
+| product_id (FK) | INT          | Thuộc sản phẩm |
+| price           | INT          | Giá            |
+| stock           | INT          | Tồn kho        |
+| sku             | VARCHAR(255) | Mã sản phẩm    |
+
+🧠 11. ATTRIBUTES
+👉 Chức năng: Loại thuộc tính (RAM, CPU...)
+| Thuộc tính        | Kiểu         | Mô tả          |
+| ----------------- | ------------ | -------------- |
+| attribute_id (PK) | INT          | ID             |
+| name              | VARCHAR(255) | Tên thuộc tính |
+
+📊 12. ATTRIBUTE_VALUES
+👉 Chức năng: Giá trị thuộc tính
+| Thuộc tính         | Kiểu         | Mô tả      |
+| ------------------ | ------------ | ---------- |
+| attr_value_id (PK) | INT          | ID         |
+| attribute_id (FK)  | INT          | Thuộc tính |
+| value              | VARCHAR(255) | Giá trị    |
+
+🔗 13. VARIANT_ATTRIBUTES
+👉 Chức năng: Liên kết variant với thuộc tính
+| Thuộc tính             | Kiểu | Mô tả   |
+| ---------------------- | ---- | ------- |
+| variant_id (PK, FK)    | INT  | Variant |
+| attr_value_id (PK, FK) | INT  | Giá trị |
+
+🛒 14. CARTS
+👉 Chức năng: Giỏ hàng của user
+| Thuộc tính   | Kiểu     | Mô tả      |
+| ------------ | -------- | ---------- |
+| id_cart (PK) | INT      | ID giỏ     |
+| user_id (FK) | CHAR(36) | Người dùng |
+
+🧾 15. CART_ITEM
+👉 Chức năng: Sản phẩm trong giỏ
+| Thuộc tính        | Kiểu | Mô tả    |
+| ----------------- | ---- | -------- |
+| cart_item_id (PK) | INT  | ID       |
+| cart_id (FK)      | INT  | Giỏ      |
+| variant_id (FK)   | INT  | Sản phẩm |
+| quantity          | INT  | Số lượng |
+
+📦 16. ORDER
+👉 Chức năng: Đơn hàng
+| Thuộc tính      | Kiểu     | Mô tả          |
+| --------------- | -------- | -------------- |
+| order_id (PK)   | CHAR(36) | ID đơn         |
+| user_id (FK)    | CHAR(36) | Người đặt      |
+| coupon_id (FK)  | INT      | Mã giảm giá    |
+| total_price     | INT      | Giá gốc        |
+| discount_amount | INT      | Giảm giá       |
+| final_price     | INT      | Giá thanh toán |
+| created_at      | DATETIME | Ngày tạo       |
+
+📋 17. ORDER_ITEM
+👉 Chức năng: Chi tiết đơn hàng
+| Thuộc tính         | Kiểu     | Mô tả       |
+| ------------------ | -------- | ----------- |
+| order_item_id (PK) | INT      | ID          |
+| order_id (FK)      | CHAR(36) | Đơn         |
+| variant_id (FK)    | INT      | Sản phẩm    |
+| price              | INT      | Giá lúc mua |
+| quantity           | INT      | Số lượng    |
+
+💳 18. PAYMENTS
+👉 Chức năng: Thông tin thanh toán
+| Thuộc tính      | Kiểu         | Mô tả        |
+| --------------- | ------------ | ------------ |
+| payment_id (PK) | CHAR(36)     | ID           |
+| order_id (FK)   | CHAR(36)     | Đơn          |
+| method          | VARCHAR(255) | COD/VNPay    |
+| status          | VARCHAR(120) | Trạng thái   |
+| transaction_id  | VARCHAR(255) | Mã giao dịch |
+
+🎟️ 19. COUPON
+👉 Chức năng: Mã giảm giá
+| Thuộc tính     | Kiểu        | Mô tả       |
+| -------------- | ----------- | ----------- |
+| coupon_id (PK) | INT         | ID          |
+| code           | VARCHAR(50) | Mã          |
+| discount       | FLOAT       | % hoặc tiền |
+| expire_date    | DATETIME    | Hạn dùng    |
+
+🔁 20. COUPON_USAGES
+👉 Chức năng: Theo dõi user đã dùng coupon
+| Thuộc tính         | Kiểu     | Mô tả      |
+| ------------------ | -------- | ---------- |
+| user_id (PK, FK)   | CHAR(36) | Người dùng |
+| coupon_id (PK, FK) | INT      | Coupon     |
+
+
