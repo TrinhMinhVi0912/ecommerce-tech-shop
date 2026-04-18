@@ -112,6 +112,19 @@
 | variant_id (PK, FK)    | INT  | Variant |
 | attr_value_id (PK, FK) | INT  | Giá trị |
 
+---- 
+ VD:
+ 1 laptop có nhiều cấu hình:
+    DELL XPS 13:
+        RAM 8GB, SSD 256GB
+        RAM 16GB, SSD 512GB
+
+RAM, SSD,... => bảng Attribute
+
+RAM 8G => Attribute value
+
+
+
 🛒 14. CARTS
 👉 Chức năng: Giỏ hàng của user
 | Thuộc tính   | Kiểu     | Mô tả      |
