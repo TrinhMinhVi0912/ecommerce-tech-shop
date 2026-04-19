@@ -7,8 +7,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.trinhminhvi.techshop.dto.request.LoginRequest;
 import com.trinhminhvi.techshop.dto.request.RegisterRequest;
 import com.trinhminhvi.techshop.dto.response.ApiResponse;
+import com.trinhminhvi.techshop.dto.response.LoginResponse;
 import com.trinhminhvi.techshop.dto.response.RegisterResponse;
 import com.trinhminhvi.techshop.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +30,12 @@ public class AuthController {
             .message("Register Successfully")
             .data(authService.register(request))
             .build()
+        );
+    }
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody LoginRequest request){
+        return ResponseEntity.ok(
+            ApiResponse.success(authService.login(request),"Login Successfully")
         );
     }
 
