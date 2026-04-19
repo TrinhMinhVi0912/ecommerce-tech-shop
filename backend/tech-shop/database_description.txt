@@ -124,7 +124,6 @@ RAM, SSD,... => bảng Attribute
 RAM 8G => Attribute value
 
 
-
 🛒 14. CARTS
 👉 Chức năng: Giỏ hàng của user
 | Thuộc tính   | Kiểu     | Mô tả      |
