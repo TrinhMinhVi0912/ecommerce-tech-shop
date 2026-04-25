@@ -2,7 +2,6 @@ package com.trinhminhvi.techshop.service.impl;
 
 import java.time.LocalDateTime;
 
-import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties.Jwt;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -15,8 +14,8 @@ import com.trinhminhvi.techshop.entity.User;
 import com.trinhminhvi.techshop.mapper.UserMapper;
 import com.trinhminhvi.techshop.repository.RoleRepository;
 import com.trinhminhvi.techshop.repository.UserRepository;
+import com.trinhminhvi.techshop.security.JwtService;
 import com.trinhminhvi.techshop.service.AuthService;
-import com.trinhminhvi.techshop.service.JwtService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -64,10 +63,11 @@ public class AuthServiceImpl implements AuthService {
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid password");
         }
-        String token = jwtService.generateToken(user.getEmail());
+        String token = jwtService.generateToken(user);
         return LoginResponse
                 .builder()
                     .email(user.getEmail())
+                    .role(user.getRole().getName())
                     .token(token)
                 .build();
     }
