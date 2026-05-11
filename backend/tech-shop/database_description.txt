@@ -4,7 +4,8 @@
 | ------------ | ------------ | ------------------------ |
 | user_id (PK) | CHAR(36)     | ID người dùng (UUID)     |
 | role_id (FK) | INT          | Vai trò (admin/user)     |
-| email        | VARCHAR(255) | Email đăng nhập (unique) |
+| email        | VARCHAR(255) | Email (unique) |
+| user_name    | VARCHAR(255) | UserName đăng nhập (unique)|
 | password     | VARCHAR(255) | Mật khẩu đã mã hóa       |
 | full_name    | VARCHAR(120) | Họ tên                   |
 | phone        | VARCHAR(20)  | Số điện thoại            |

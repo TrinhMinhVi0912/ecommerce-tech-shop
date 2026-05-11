@@ -14,16 +14,19 @@ import com.trinhminhvi.techshop.dto.response.LoginResponse;
 import com.trinhminhvi.techshop.dto.response.RegisterResponse;
 import com.trinhminhvi.techshop.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
+@Slf4j
 public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<RegisterResponse>> register(@RequestBody RegisterRequest request){
+        System.out.println(request.getEmail() + "\n" + request.getUserName());
         return ResponseEntity.ok(ApiResponse.<RegisterResponse>
             builder()
             .success(true)

@@ -11,4 +11,5 @@ import com.trinhminhvi.techshop.entity.User;
 public interface UserRepository extends JpaRepository<User,String>{
     Optional<User> findByEmail(String email);
     Optional<User> findByPhone(String phone);
+    Optional<User> findByUserName(String name);
 }
