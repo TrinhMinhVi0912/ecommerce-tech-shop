@@ -8,4 +8,6 @@ import com.trinhminhvi.techshop.dto.response.RegisterResponse;
 public interface AuthService {
      public RegisterResponse register(RegisterRequest request);
      public LoginResponse login(LoginRequest request);
+     public void logout(String token);
+     public boolean introspectToken(String token);
 }

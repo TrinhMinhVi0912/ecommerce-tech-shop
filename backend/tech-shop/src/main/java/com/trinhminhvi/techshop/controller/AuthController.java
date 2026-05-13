@@ -13,6 +13,8 @@ import com.trinhminhvi.techshop.dto.response.ApiResponse;
 import com.trinhminhvi.techshop.dto.response.LoginResponse;
 import com.trinhminhvi.techshop.dto.response.RegisterResponse;
 import com.trinhminhvi.techshop.service.AuthService;
+
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,21 +27,55 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<RegisterResponse>> register(@RequestBody RegisterRequest request){
+    public ResponseEntity<ApiResponse<RegisterResponse>> register(@RequestBody RegisterRequest request) {
         System.out.println(request.getEmail() + "\n" + request.getUserName());
-        return ResponseEntity.ok(ApiResponse.<RegisterResponse>
-            builder()
-            .success(true)
-            .message("Register Successfully")
-            .data(authService.register(request))
-            .build()
-        );
+        return ResponseEntity.ok(ApiResponse.<RegisterResponse>builder()
+                .success(true)
+                .message("Register Successfully")
+                .data(authService.register(request))
+                .build());
     }
+
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody LoginRequest request){
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody LoginRequest request) {
         return ResponseEntity.ok(
-            ApiResponse.success(authService.login(request),"Login Successfully")
-        );
+                ApiResponse.success(authService.login(request), "Login Successfully"));
+    }
+
+    @PostMapping("/logout")
+    public ApiResponse<Object> logout(HttpServletRequest request) {
+
+        String authHeader = request.getHeader("Authorization");
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new RuntimeException("Token is missing");
+        }
+
+        String token = authHeader.substring(7);
+
+        authService.logout(token);
+
+        return ApiResponse.builder()
+                .success(true)
+                .message("Logout Successfully")
+                .data(null)
+                .build();
+    }
+
+    @PostMapping("/introspect")
+    public ApiResponse<Object> introspect(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new RuntimeException("Token is missing");
+        }
+
+        String token = authHeader.substring(7);
+        boolean isValidated = authService.introspectToken(token);
+        return ApiResponse.builder()
+                .success(isValidated)
+                .message("Token is valid")
+                .build();
     }
 
 }
