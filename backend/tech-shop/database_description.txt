@@ -151,6 +151,7 @@ RAM 8G => Attribute value
 | total_price     | INT      | Giá gốc        |
 | discount_amount | INT      | Giảm giá       |
 | final_price     | INT      | Giá thanh toán |
+| status          |VARCHAR(25)| Trạng thái   |
 | created_at      | DATETIME | Ngày tạo       |
 
 📋 17. ORDER_ITEM
@@ -172,6 +173,16 @@ RAM 8G => Attribute value
 | method          | VARCHAR(255) | COD/VNPay    |
 | status          | VARCHAR(120) | Trạng thái   |
 | transaction_id  | VARCHAR(255) | Mã giao dịch |
+| amount  | INT | Số tiền thực tế thành toán |
+| paid_at  | Date Time | Thời điểm thanh toán thành công |
+| provider  | VARCHAR(255) | Nhà cung cấp dịch vụ thanh toán |
+| response_code  | INT | Mã phản hồi của cổng thanh toán |
+| payment_url  | VARCHAR(255) | Link thanh toán |
+| created_at  | DATETIME | Thời điểm tạo payments |
+
+
+
+
 
 🎟️ 19. COUPON
 👉 Chức năng: Mã giảm giá
