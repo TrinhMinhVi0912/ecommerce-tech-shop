@@ -2,6 +2,7 @@ package com.trinhminhvi.techshop.controller;
 
 import java.util.List;
 
+import org.springdoc.core.converters.models.Pageable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.trinhminhvi.techshop.dto.request.GetAllProductRequest;
 import com.trinhminhvi.techshop.dto.response.ApiResponse;
+import com.trinhminhvi.techshop.dto.response.PageableResponse;
 import com.trinhminhvi.techshop.dto.response.ProductDetailResponse;
 import com.trinhminhvi.techshop.dto.response.ProductResponse;
 import com.trinhminhvi.techshop.service.ProductService;
@@ -34,7 +36,7 @@ public class ProductController {
         // @RequestParam(required = false) String search
 
     @GetMapping
-    public ApiResponse<List<ProductResponse>> getAllProduct(GetAllProductRequest getAllProductRequest) {
+    public ApiResponse<PageableResponse<List<ProductResponse>>> getAllProduct(GetAllProductRequest getAllProductRequest) {
         System.out.println(getAllProductRequest.getBrandId());
         Sort sort = null;
         if(getAllProductRequest.getSortDir().equalsIgnoreCase("ASC")){
@@ -43,7 +45,7 @@ public class ProductController {
         else{
             sort = Sort.by(getAllProductRequest.getSortBy()).descending();
         }
-        return ApiResponse.<List<ProductResponse>>builder()
+        return ApiResponse.<PageableResponse<List<ProductResponse>>>builder()
                 .success(true)
                 .message("Get Products Successfully")
                 .data(productService.getAllProduct(PageRequest.of(

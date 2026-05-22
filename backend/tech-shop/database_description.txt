@@ -80,6 +80,8 @@
 | img_id (PK)     | INT           | ID ảnh        |
 | product_id (FK) | INT           | Sản phẩm      |
 | image_path      | VARCHAR(1024) | Đường dẫn ảnh |
+| is_thumbnail    | BOOLEAN       | Là ảnh thumbnail |
+
 
 ⚙️ 10. PRODUCT_VARIANTS
 👉 Chức năng: Các cấu hình sản phẩm

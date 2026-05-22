@@ -1,6 +1,7 @@
 package com.trinhminhvi.techshop.dto.response;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Locale.Category;
 import com.trinhminhvi.techshop.entity.Brand;
 import lombok.AllArgsConstructor;
@@ -19,5 +20,6 @@ public class ProductDetailResponse {
     private BigDecimal basePrice;
     private BrandResponse brandResponse;
     private CategoryResponse categoryResponse;
-
+    private List<ProductImageResponse> images;
+    private List<ProductVariantResponse> variants;
 }

@@ -4,7 +4,6 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import com.trinhminhvi.techshop.dto.request.RegisterRequest;
-import com.trinhminhvi.techshop.dto.response.LoginResponse;
 import com.trinhminhvi.techshop.dto.response.RegisterResponse;
 import com.trinhminhvi.techshop.entity.User;
 
@@ -17,3 +16,4 @@ public interface UserMapper {
 
     RegisterResponse toRegisterResponse(User user);
 }
+

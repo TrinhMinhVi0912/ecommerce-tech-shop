@@ -12,24 +12,28 @@ import com.trinhminhvi.techshop.entity.Product;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Integer> {
-
     @Query("""
-                SELECT p FROM Product p
-                WHERE
-                    (:search IS NULL
-                        OR LOWER(p.name)
-                        LIKE LOWER(CONCAT('%', :search, '%')))
+            SELECT DISTINCT p
+            FROM Product p
+            LEFT JOIN p.productImages pi
+            WHERE
+                (:search IS NULL
+                    OR LOWER(p.name)
+                    LIKE LOWER(CONCAT('%', :search, '%')))
 
-                AND
-                    (:brandId IS NULL
-                        OR p.brand.brandId = :brandId)
+            AND
+                (:brandId IS NULL
+                    OR p.brand.brandId = :brandId)
 
-                AND
-                    (:categoryId IS NULL
-                        OR p.category.categoryId = :categoryId)
+            AND
+                (:categoryId IS NULL
+                    OR p.category.categoryId = :categoryId)
 
-                AND
-                    (p.basePrice BETWEEN :minPrice AND :maxPrice)
+            AND
+                (p.basePrice BETWEEN :minPrice AND :maxPrice)
+
+            AND
+                (pi IS NULL OR pi.isThumbnail = true)
             """)
     Page<Product> searchProduct(
             @Param("search") String search,
@@ -39,12 +43,5 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
             @Param("categoryId") Integer categoryId,
             Pageable pageable);
 
-    Page<Product> findByNameContainingIgnoreCaseAndBasePriceBetweenAndBrandBrandIdAndCategoryCategoryId(
-            String search,
-            BigDecimal minPrice,
-            BigDecimal maxPrice,
-            Integer brandId,
-            Integer categoryId,
-            Pageable pageable);
 
 }

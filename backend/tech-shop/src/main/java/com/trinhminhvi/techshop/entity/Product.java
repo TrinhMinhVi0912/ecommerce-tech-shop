@@ -2,6 +2,11 @@ package com.trinhminhvi.techshop.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Value;
+
+import com.trinhminhvi.techshop.config.AppProperties;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,6 +15,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,11 +37,11 @@ public class Product {
     private Integer productId;
 
     @ManyToOne
-    @JoinColumn(name = "brand_id",nullable = false)
+    @JoinColumn(name = "brand_id", nullable = false)
     private Brand brand;
 
     @ManyToOne
-    @JoinColumn(name = "category_id",nullable = false)
+    @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
     @Column(nullable = false)
@@ -44,9 +50,26 @@ public class Product {
     @Column(nullable = false)
     private String description;
 
-    @Column(name = "base_price",nullable = false)
+    @Column(name = "base_price", nullable = false)
     private BigDecimal basePrice;
 
-    @Column(name = "created_at",nullable = false)
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "product")
+    private List<ProductImage> productImages;
+
+    
+    public String getThumbnailPath() {
+        if (productImages == null) {
+            return null;
+        }
+
+        return productImages.stream()
+                .filter(productImg -> productImg.isThumbnail())
+                .map(productImg -> productImg.getImagePath())
+                .findFirst()
+                .orElse("/images/products/default.jpg");
+    }
+
 }

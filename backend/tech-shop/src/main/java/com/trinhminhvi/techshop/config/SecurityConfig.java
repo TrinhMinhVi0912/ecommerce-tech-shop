@@ -14,10 +14,12 @@ public class SecurityConfig {
 
     private final String[] PUBLIC_ENDPOINTS = {
             "/auth/login", "/auth/register", "/auth/logout", "/auth/introspect",
-            "/product", "/product/*"
+            "/product", "/product/*",
+            "/images/products/*"
     };
     @Value("${jwt.secret}")
     private String secretKey;
+
 
     @Bean
     PasswordEncoder passwordEncoder() {
