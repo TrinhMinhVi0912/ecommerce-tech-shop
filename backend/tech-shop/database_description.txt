@@ -9,6 +9,7 @@
 | password     | VARCHAR(255) | Mật khẩu đã mã hóa       |
 | full_name    | VARCHAR(120) | Họ tên                   |
 | phone        | VARCHAR(20)  | Số điện thoại            |
+| avatar       | VARCHAR(255) | avatar                   |
 | created_at   | DATETIME     | Ngày tạo tài khoản       |
 
 🔐 2. ROLES

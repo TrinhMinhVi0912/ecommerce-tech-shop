@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class GetAllProductRequest {
+public class GetProductsRequest{
     @Builder.Default
     private Integer pageNum = 1;
 

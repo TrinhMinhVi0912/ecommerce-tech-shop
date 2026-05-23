@@ -62,6 +62,7 @@ public class AuthServiceImpl implements AuthService {
                 () -> new RuntimeException("Role not Found"));
 
         user.setRole(role);
+        user.setAvatarPath("/images/default.jpg");
         userRepository.save(user);
 
         return userMapper.toRegisterResponse(user);

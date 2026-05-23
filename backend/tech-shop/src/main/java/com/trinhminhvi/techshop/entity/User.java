@@ -36,6 +36,7 @@ public class User {
     private String password;
     private String fullName;
     private String phone;
+    private String avatarPath;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

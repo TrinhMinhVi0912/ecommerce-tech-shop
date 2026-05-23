@@ -6,7 +6,7 @@ Sản phẩm nổi bật / bán chạy / mới nhất
 
 Danh sách sản phẩm
 
-Hiển thị danh sách laptop
+Hiển thị danh sách laptop x
     Phân trang
     Bộ lọc (quan trọng)
     Theo hãng (Dell, ASUS, MSI…)
