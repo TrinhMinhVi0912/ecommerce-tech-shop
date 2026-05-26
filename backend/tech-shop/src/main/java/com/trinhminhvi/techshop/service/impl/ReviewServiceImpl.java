@@ -5,20 +5,27 @@ import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.trinhminhvi.techshop.dto.request.AddReviewRequest;
+import com.trinhminhvi.techshop.dto.response.AddReviewResponse;
 import com.trinhminhvi.techshop.dto.response.PageableResponse;
 import com.trinhminhvi.techshop.dto.response.ProductReviewResponse;
 import com.trinhminhvi.techshop.dto.response.ReviewResponse;
 import com.trinhminhvi.techshop.dto.response.SummaryReviewProduct;
 import com.trinhminhvi.techshop.dto.response.UserResponse;
 import com.trinhminhvi.techshop.entity.Review;
+import com.trinhminhvi.techshop.entity.User;
+import com.trinhminhvi.techshop.entity.Product;
 import com.trinhminhvi.techshop.repository.ReviewRepository;
+import com.trinhminhvi.techshop.repository.UserRepository;
+import com.trinhminhvi.techshop.repository.ProductRepository;
 import com.trinhminhvi.techshop.service.ReviewService;
 
+import io.micrometer.common.lang.NonNull;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -26,6 +33,8 @@ import lombok.RequiredArgsConstructor;
 public class ReviewServiceImpl implements ReviewService{
 
     private final ReviewRepository reviewRepository;
+    private final UserRepository userRepository;
+    private final ProductRepository productRepository;
 
     @Override
     public ProductReviewResponse getReviewFromProduct(Pageable pageable, Integer productId) {
@@ -102,4 +111,40 @@ public class ReviewServiceImpl implements ReviewService{
                         .build())
                 .build();
     }
+
+    @Transactional
+    @Override
+    public AddReviewResponse addReviewForProduct(String email,Integer productId, AddReviewRequest addReviewRequest) {
+
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+
+        Product product = productRepository.findById(productId).orElseThrow(() -> new RuntimeException("product not found"));
+
+
+        if(reviewRepository.findByUserAndProduct(user, product).isPresent()){
+                throw new RuntimeException("You already review this product");
+        }
+
+
+        Review review = Review.builder()
+        .comment(addReviewRequest.getComment())
+        .rating(addReviewRequest.getRating())
+        .user(user)
+        .product(product)
+        .build();
+
+
+        Review reviewSave = reviewRepository.save(review);
+
+
+        return AddReviewResponse.builder()
+        .userName(user.getUserName())
+        .reviewId(reviewSave.getReviewId())
+        .rating(reviewSave.getRating())
+        .comment(reviewSave.getComment())
+        .createdAt(reviewSave.getCreatedAt())
+        .build();
+    }
+
+
 }
