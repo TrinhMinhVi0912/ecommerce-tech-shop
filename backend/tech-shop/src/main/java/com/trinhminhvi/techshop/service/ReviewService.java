@@ -10,7 +10,7 @@ import com.trinhminhvi.techshop.dto.response.UpdateReviewResponse;
 
 public interface ReviewService {
 
-    public ProductReviewResponse getReview(Pageable pageable, Integer id);
+    public ProductReviewResponse getReview(Pageable pageable, Integer id, String userId);
     
     public AddReviewResponse addReview(String userId, Integer productId, AddReviewRequest addReviewRequest);
 

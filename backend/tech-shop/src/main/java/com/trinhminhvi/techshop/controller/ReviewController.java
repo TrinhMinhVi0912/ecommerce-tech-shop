@@ -35,12 +35,22 @@ public class ReviewController {
         @GetMapping
         public ApiResponse<ProductReviewResponse> getProductReview(
                         @PathVariable Integer productId,
-                        @Validated @ModelAttribute GetReviewsRequest getReviewsRequest) {
+                        @Validated @ModelAttribute GetReviewsRequest getReviewsRequest,
+                        HttpServletRequest httpServletRequest) {
 
 
-
+                // verify pageNum và pageSize
                 int pageNum = (getReviewsRequest.getPageNum() == null || getReviewsRequest.getPageNum() < 1) ?  1 : getReviewsRequest.getPageNum();
                 int pageSize = ( getReviewsRequest.getPageSize() == null || getReviewsRequest.getPageSize() < 1) ? 10 : getReviewsRequest.getPageSize();
+
+                String userId = null;
+
+                try {
+                        String token = jwtService.extractToken(httpServletRequest);
+                        userId = jwtService.extractUserIdFromToken(token);
+                } catch (Exception e) {
+                        // rỗng cho các trường hợp khách chưa đăng nhập hoặc khách vãng lai => chưa có token trên header bearer
+                }
 
                 getReviewsRequest.setPageNum(pageNum);
                 getReviewsRequest.setPageSize(pageSize);
@@ -51,7 +61,7 @@ public class ReviewController {
                                 .data(reviewService.getReview(
                                                 PageRequest.of(getReviewsRequest.getPageNum() - 1,
                                                                 getReviewsRequest.getPageSize()),
-                                                productId))
+                                                productId,userId))
                                 .build();
         }
 

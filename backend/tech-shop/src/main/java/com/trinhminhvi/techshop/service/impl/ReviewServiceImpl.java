@@ -40,9 +40,9 @@ public class ReviewServiceImpl implements ReviewService {
         private final ReviewMapper reviewMapper;
 
         @Override
-        public ProductReviewResponse getReview(Pageable pageable, Integer productId) {
+        public ProductReviewResponse getReview(Pageable pageable, Integer productId, String userId) {
 
-                Page<Review> pageProductReviewResponse = reviewRepository.findAllByProduct(pageable, productId);
+                Page<Review> pageProductReviewResponse = reviewRepository.findAllByProduct(pageable, productId, userId);
 
                 List<ReviewResponse> listProductReviewResponse = pageProductReviewResponse
                                 .getContent()

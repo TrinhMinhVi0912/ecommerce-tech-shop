@@ -16,21 +16,21 @@ import com.trinhminhvi.techshop.entity.Product;
 @Repository
 public interface ReviewRepository extends JpaRepository<Review, Integer> {
 
-
+    // đưa người dùng hiên tại lên đầu danh sách nếu khách chưa đăng nhập hay khách vãng lai thì được gán giá trị 1 nên không thay đổi
     @Query("""
                 SELECT r
                 FROM Review r
                 WHERE r.product.productId = :productId
-                ORDER BY r.createdAt DESC
+                ORDER BY
+                    CASE WHEN (:userId IS NOT NULL AND r.user.userId = :userId) THEN 0 ELSE 1 END ASC,
+                    r.createdAt DESC
             """)
     Page<Review> findAllByProduct(
             Pageable pageable,
-            @Param("productId") Integer productId);
+            @Param("productId") Integer productId,
+            @Param("userId") String userId);
 
-
-
-
-    // sẽ ra 2 cột 
+    // sẽ ra 2 cột
     // cột đầu là AVG -> trung bình rating
     // cột hai là Count -> số lượng review của proudctId đó
     @Query("""
@@ -41,14 +41,13 @@ public interface ReviewRepository extends JpaRepository<Review, Integer> {
                 WHERE r.product.productId = :productId
             """)
     Object getReviewSummary(
-            @Param("productId") Integer productId
-    );
+            @Param("productId") Integer productId);
 
 
-
+            
     // Tìm kiếm số lượng của mỗi rating
     // VD 5sao -> 100
-    //    4sao -> 20 ....
+    // 4sao -> 20 ....
     @Query("""
                 SELECT
                     r.rating,
@@ -60,9 +59,8 @@ public interface ReviewRepository extends JpaRepository<Review, Integer> {
     List<Object[]> countRatingBreakdown(
             @Param("productId") Integer productId);
 
+    Optional<Review> findByUserUserIdAndProductProductId(String userId, Integer productId);
 
-    Optional<Review> findByUserUserIdAndProductProductId(String userId,Integer productId);
-    
     boolean existsByUserAndProduct(User user, Product product);
 
     void deleteByUserUserIdAndProductProductId(String userId, Integer productId);

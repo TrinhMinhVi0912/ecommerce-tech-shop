@@ -2,25 +2,20 @@ package com.trinhminhvi.techshop.controller;
 
 import java.util.List;
 
-import org.springdoc.core.converters.models.Pageable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.trinhminhvi.techshop.dto.request.GetProductsRequest;
-import com.trinhminhvi.techshop.dto.request.GetReviewsRequest;
 import com.trinhminhvi.techshop.dto.response.ApiResponse;
 import com.trinhminhvi.techshop.dto.response.PageableResponse;
 import com.trinhminhvi.techshop.dto.response.ProductDetailResponse;
 import com.trinhminhvi.techshop.dto.response.ProductResponse;
-import com.trinhminhvi.techshop.dto.response.ProductReviewResponse;
 import com.trinhminhvi.techshop.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/product")
