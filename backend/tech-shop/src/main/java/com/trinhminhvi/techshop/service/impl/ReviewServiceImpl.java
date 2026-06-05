@@ -11,140 +11,172 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.trinhminhvi.techshop.dto.request.AddReviewRequest;
+import com.trinhminhvi.techshop.dto.request.UpdateReviewRequest;
 import com.trinhminhvi.techshop.dto.response.AddReviewResponse;
 import com.trinhminhvi.techshop.dto.response.PageableResponse;
 import com.trinhminhvi.techshop.dto.response.ProductReviewResponse;
 import com.trinhminhvi.techshop.dto.response.ReviewResponse;
 import com.trinhminhvi.techshop.dto.response.SummaryReviewProduct;
+import com.trinhminhvi.techshop.dto.response.UpdateReviewResponse;
 import com.trinhminhvi.techshop.dto.response.UserResponse;
 import com.trinhminhvi.techshop.entity.Review;
 import com.trinhminhvi.techshop.entity.User;
+import com.trinhminhvi.techshop.mapper.ReviewMapper;
 import com.trinhminhvi.techshop.entity.Product;
 import com.trinhminhvi.techshop.repository.ReviewRepository;
 import com.trinhminhvi.techshop.repository.UserRepository;
 import com.trinhminhvi.techshop.repository.ProductRepository;
 import com.trinhminhvi.techshop.service.ReviewService;
-
-import io.micrometer.common.lang.NonNull;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class ReviewServiceImpl implements ReviewService{
+public class ReviewServiceImpl implements ReviewService {
 
-    private final ReviewRepository reviewRepository;
-    private final UserRepository userRepository;
-    private final ProductRepository productRepository;
+        private final ReviewRepository reviewRepository;
+        private final UserRepository userRepository;
+        private final ProductRepository productRepository;
 
-    @Override
-    public ProductReviewResponse getReviewFromProduct(Pageable pageable, Integer productId) {
+        private final ReviewMapper reviewMapper;
 
-        Page<Review> pageProductReviewResponse = reviewRepository.findAllByProduct(pageable, productId);
+        @Override
+        public ProductReviewResponse getReview(Pageable pageable, Integer productId) {
 
-        List<ReviewResponse> listProductReviewResponse = pageProductReviewResponse
-                .getContent()
-                .stream()
-                .map(
-                        rw -> {
-                            ReviewResponse reviewResponse = ReviewResponse.builder()
-                                    .reviewId(rw.getReviewId())
-                                    .rating(rw.getRating())
-                                    .comment(rw.getComment())
-                                    .createdAt(rw.getCreatedAt())
-                                    .user(UserResponse.builder()
-                                            .userId(rw.getUser().getUserId())
-                                            .fullName(rw.getUser().getFullName())
-                                            .avatarUrl(rw.getUser().getAvatarPath())
-                                            .build())
-                                    .build();
-                            return reviewResponse;
-                        })
-                .toList();
+                Page<Review> pageProductReviewResponse = reviewRepository.findAllByProduct(pageable, productId);
 
-        Object result = reviewRepository.getReviewSummary(productId);
+                List<ReviewResponse> listProductReviewResponse = pageProductReviewResponse
+                                .getContent()
+                                .stream()
+                                .map(
+                                                rw -> {
+                                                        ReviewResponse reviewResponse = ReviewResponse.builder()
+                                                                        .reviewId(rw.getReviewId())
+                                                                        .rating(rw.getRating())
+                                                                        .comment(rw.getComment())
+                                                                        .createdAt(rw.getCreatedAt())
+                                                                        .user(UserResponse.builder()
+                                                                                        .userId(rw.getUser()
+                                                                                                        .getUserId())
+                                                                                        .fullName(rw.getUser()
+                                                                                                        .getFullName())
+                                                                                        .avatarUrl(rw.getUser()
+                                                                                                        .getAvatarPath())
+                                                                                        .build())
+                                                                        .build();
+                                                        return reviewResponse;
+                                                })
+                                .toList();
 
-        Object[] summaryData = (Object[]) result;
+                Object result = reviewRepository.getReviewSummary(productId);
 
-        BigDecimal averageRating = summaryData[0] != null
-                ? BigDecimal.valueOf(
-                        ((Number) summaryData[0]).doubleValue()).setScale(1, RoundingMode.HALF_UP)
-                : BigDecimal.ZERO;
+                Object[] summaryData = (Object[]) result;
 
-        Long totalReviews = summaryData[1] != null
-                ? ((Number) summaryData[1]).longValue()
-                : 0L;
+                BigDecimal averageRating = summaryData[0] != null
+                                ? BigDecimal.valueOf(
+                                                ((Number) summaryData[0]).doubleValue())
+                                                .setScale(1, RoundingMode.HALF_UP)
+                                : BigDecimal.ZERO;
 
-        List<Object[]> breakdownData = reviewRepository.countRatingBreakdown(productId);
+                Long totalReviews = summaryData[1] != null
+                                ? ((Number) summaryData[1]).longValue()
+                                : 0L;
 
-        // Khởi tạo Map
-        Map<Integer, Long> ratingBreakdown = new HashMap<>();
+                List<Object[]> breakdownData = reviewRepository.countRatingBreakdown(productId);
 
-        ratingBreakdown.put(1, 0L);
-        ratingBreakdown.put(2, 0L);
-        ratingBreakdown.put(3, 0L);
-        ratingBreakdown.put(4, 0L);
-        ratingBreakdown.put(5, 0L);
+                // Khởi tạo Map
+                Map<Integer, Long> ratingBreakdown = new HashMap<>();
 
-        // Cập nhật giá trị
-        for (Object[] row : breakdownData) {
+                ratingBreakdown.put(1, 0L);
+                ratingBreakdown.put(2, 0L);
+                ratingBreakdown.put(3, 0L);
+                ratingBreakdown.put(4, 0L);
+                ratingBreakdown.put(5, 0L);
 
-            Integer rating = (Integer) row[0];
-            Long count = (Long) row[1];
+                // Cập nhật giá trị
+                for (Object[] row : breakdownData) {
 
-            ratingBreakdown.put(rating, count);
+                        Integer rating = (Integer) row[0];
+                        Long count = (Long) row[1];
+
+                        ratingBreakdown.put(rating, count);
+                }
+
+                SummaryReviewProduct summary = SummaryReviewProduct.builder()
+                                .averageRating(averageRating)
+                                .totalReviews(totalReviews.intValue())
+                                .ratingBreakdown(ratingBreakdown)
+                                .build();
+
+                return ProductReviewResponse.builder()
+                                .summary(summary)
+                                .reviews(PageableResponse.<List<ReviewResponse>>builder()
+                                                .pageNum(pageProductReviewResponse.getNumber() + 1)
+                                                .pageSize(pageProductReviewResponse.getSize())
+                                                .totalElements(pageProductReviewResponse.getTotalElements())
+                                                .totalPages(pageProductReviewResponse.getTotalPages())
+                                                .items(listProductReviewResponse)
+                                                .build())
+                                .build();
         }
 
-        SummaryReviewProduct summary = SummaryReviewProduct.builder()
-                .averageRating(averageRating)
-                .totalReviews(totalReviews.intValue())
-                .ratingBreakdown(ratingBreakdown)
-                .build();
+        @Transactional
+        @Override
+        public AddReviewResponse addReview(String userId, Integer productId, AddReviewRequest addReviewRequest) {
 
-        return ProductReviewResponse.builder()
-                .summary(summary)
-                .reviews(PageableResponse.<List<ReviewResponse>>builder()
-                        .pageNum(pageProductReviewResponse.getNumber() + 1)
-                        .pageSize(pageProductReviewResponse.getSize())
-                        .totalElements(pageProductReviewResponse.getTotalElements())
-                        .totalPages(pageProductReviewResponse.getTotalPages())
-                        .items(listProductReviewResponse)
-                        .build())
-                .build();
-    }
+                // lay user thong qua userid
+                User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
 
-    @Transactional
-    @Override
-    public AddReviewResponse addReviewForProduct(String email,Integer productId, AddReviewRequest addReviewRequest) {
+                // lay product thong qua productid -> thuong lay tren thanh url
+                Product product = productRepository.findById(productId)
+                                .orElseThrow(() -> new RuntimeException("product not found"));
 
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+                // kiem tra xem user da review chua
+                if (reviewRepository.existsByUserAndProduct(user, product)) {
+                        throw new RuntimeException("You already review this product");
+                }
 
-        Product product = productRepository.findById(productId).orElseThrow(() -> new RuntimeException("product not found"));
+                Review review = Review.builder()
+                                .comment(addReviewRequest.getComment())
+                                .rating(addReviewRequest.getRating())
+                                .user(user)
+                                .product(product)
+                                .build();
 
+                Review reviewSave = reviewRepository.save(review);
 
-        if(reviewRepository.findByUserAndProduct(user, product).isPresent()){
-                throw new RuntimeException("You already review this product");
+                // return AddReviewResponse.builder()
+                // .userName(user.getUserName())
+                // .reviewId(reviewSave.getReviewId())
+                // .rating(reviewSave.getRating())
+                // .comment(reviewSave.getComment())
+                // .createdAt(reviewSave.getCreatedAt())
+                // .build();
+
+                return reviewMapper.toAddReviewResponse(reviewSave);
         }
 
 
-        Review review = Review.builder()
-        .comment(addReviewRequest.getComment())
-        .rating(addReviewRequest.getRating())
-        .user(user)
-        .product(product)
-        .build();
+        @Override
+        @Transactional
+        public UpdateReviewResponse updateReview(String userId, Integer productId,
+                        UpdateReviewRequest updateReviewRequest) {
 
+                Review review = reviewRepository.findByUserUserIdAndProductProductId(userId, productId)
+                                .orElseThrow(() -> new RuntimeException("Review not found"));
 
-        Review reviewSave = reviewRepository.save(review);
+                review.setRating(updateReviewRequest.getRating());
+                review.setComment(updateReviewRequest.getComment());
 
+                Review updatedReview = reviewRepository.save(review);
 
-        return AddReviewResponse.builder()
-        .userName(user.getUserName())
-        .reviewId(reviewSave.getReviewId())
-        .rating(reviewSave.getRating())
-        .comment(reviewSave.getComment())
-        .createdAt(reviewSave.getCreatedAt())
-        .build();
-    }
+                return reviewMapper.toUpdateReviewResponse(updatedReview);
 
+        }
+
+        @Override
+        @Transactional
+        public void deleteReview(String userId, Integer productId) {
+                reviewRepository.deleteByUserUserIdAndProductProductId(userId, productId); 
+        }
 
 }

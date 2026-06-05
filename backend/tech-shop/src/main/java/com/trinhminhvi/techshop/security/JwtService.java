@@ -4,9 +4,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 import java.util.UUID;
-
-import javax.management.RuntimeErrorException;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +16,7 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
 
 @Service
 public class JwtService {
@@ -38,6 +36,7 @@ public class JwtService {
         return Jwts.builder()
                 .setSubject(user.getUserId())
                 .claim("role", user.getRole().getName())
+                .claim("email", user.getEmail())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expiration)) // 1h
                 .signWith(getSignKey(), SignatureAlgorithm.HS256)
@@ -74,11 +73,31 @@ public class JwtService {
             throw new RuntimeException("Malformed token");
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("Token is empty");
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("Validated Token Fail");
         }
+    }
+
+    public String extractToken(
+            HttpServletRequest httpServletRequest) {
+        String authHeader = httpServletRequest.getHeader("Authorization");
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new RuntimeException("Token is missing");
+        }
+
+        return authHeader.substring(7);
+
+    }
+
+
+    public String extractEmailFromToken(String token){
+        return extractAllClaims(token).get("email",String.class);
+    }
+
+    public String extractUserIdFromToken(String token){
+        return extractAllClaims(token).getSubject();
     }
 
 }

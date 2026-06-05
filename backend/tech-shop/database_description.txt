@@ -204,3 +204,12 @@ RAM 8G => Attribute value
 | coupon_id (PK, FK) | INT      | Coupon     |
 
 
+
+Invalid_Tokens
+👉 Chức năng: Lưu token không hợp lệ
+| Thuộc tính         | Kiểu         | Mô tả      |
+| ------------------ | --------     | ---------- |
+| id                 | INT          | ID         |
+| token              | VARCHAR(1024)| token      |
+| expired_at         | DATETIME     | hết hạn tại| 
+

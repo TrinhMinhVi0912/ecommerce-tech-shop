@@ -61,6 +61,10 @@ public interface ReviewRepository extends JpaRepository<Review, Integer> {
             @Param("productId") Integer productId);
 
 
-    Optional<Review> findByUserAndProduct(User user,Product product);
+    Optional<Review> findByUserUserIdAndProductProductId(String userId,Integer productId);
+    
+    boolean existsByUserAndProduct(User user, Product product);
+
+    void deleteByUserUserIdAndProductProductId(String userId, Integer productId);
 
 }

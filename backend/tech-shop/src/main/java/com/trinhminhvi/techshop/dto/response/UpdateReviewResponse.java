@@ -1,7 +1,6 @@
-package com.trinhminhvi.techshop.dto.request;
+package com.trinhminhvi.techshop.dto.response;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,11 +12,11 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AddReviewRequest {
-
-    @Min(value = 1)
-    @Max(value = 5)
+public class UpdateReviewResponse {
+    private Integer reviewId;
+    private String userName;    
+    private String avatarPath;
     private Integer rating;
-    
     private String comment;
+    private LocalDateTime createdAt;
 }

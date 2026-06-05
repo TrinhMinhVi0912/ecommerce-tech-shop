@@ -14,7 +14,7 @@ public class SecurityConfig {
 
     private final String[] PUBLIC_ENDPOINTS = {
             "/auth/login", "/auth/register", "/auth/logout", "/auth/introspect",
-            "/product", "/product/*", "/product/*/*",
+            "/product", "/product/*", "/products/*/*",
             "/images/products/*",
             "/review/*/*"
     };
@@ -32,6 +32,9 @@ public class SecurityConfig {
         httpSecurity
                 .authorizeHttpRequests(request -> request.requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS).permitAll()
                         .requestMatchers(HttpMethod.GET, PUBLIC_ENDPOINTS).permitAll()
+                        .requestMatchers(HttpMethod.PUT,PUBLIC_ENDPOINTS).permitAll()
+                        .requestMatchers(HttpMethod.DELETE,PUBLIC_ENDPOINTS).permitAll()
+                        .requestMatchers(HttpMethod.POST,PUBLIC_ENDPOINTS).permitAll()
                         .anyRequest().authenticated());
 
         // httpSecurity.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer ->

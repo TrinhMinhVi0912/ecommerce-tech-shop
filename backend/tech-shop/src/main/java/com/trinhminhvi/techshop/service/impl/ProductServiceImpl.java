@@ -8,7 +8,6 @@ import java.util.Map;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import com.trinhminhvi.techshop.config.AppProperties;
 import com.trinhminhvi.techshop.dto.request.GetProductsRequest;
 import com.trinhminhvi.techshop.dto.response.AttriubutesValueResponse;
 import com.trinhminhvi.techshop.dto.response.PageableResponse;
@@ -55,8 +54,6 @@ public class ProductServiceImpl implements ProductService {
     private final ProductVariantMapper productVariantMapper;
     private final ProductImageMapper productImageMapper;
 
-    private final AppProperties appProperly;
-
     @Override
     public PageableResponse<List<ProductResponse>> getAllProduct(Pageable pageable,
             GetProductsRequest getAllProductRequest) {
@@ -71,7 +68,7 @@ public class ProductServiceImpl implements ProductService {
         List<ProductResponse> listProductResponse = pageProducts.getContent().stream()
                 .map(product -> {
                     ProductResponse productResponse = productMapper.toProductResponse(product);
-                    productResponse.setThumbnailImagePath(appProperly.getBaseUrl() + product.getThumbnailPath());
+                    productResponse.setThumbnailImagePath(product.getThumbnailPath());
                     return productResponse;
                 })
                 .toList();

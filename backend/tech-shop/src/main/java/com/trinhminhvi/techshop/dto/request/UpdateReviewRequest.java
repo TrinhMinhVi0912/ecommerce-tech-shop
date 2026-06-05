@@ -13,11 +13,12 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AddReviewRequest {
+public class UpdateReviewRequest {
 
-    @Min(value = 1)
-    @Max(value = 5)
+    @Min(value = 1, message = "rating must be between 1 and 5")
+    @Max(value = 5, message = "rating must be between 1 and 5")
     private Integer rating;
-    
+
     private String comment;
+
 }

@@ -14,7 +14,8 @@ import lombok.Setter;
 @AllArgsConstructor
 public class AddReviewResponse {
     private Integer reviewId;
-    private String userName;
+    private String userName; 
+    private String avatarPath;   
     private Integer rating;
     private String comment;
     private LocalDateTime createdAt;
