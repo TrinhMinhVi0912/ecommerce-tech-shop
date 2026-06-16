@@ -1,0 +1,24 @@
+package com.trinhminhvi.techshop.review.dto.response;
+
+import java.time.LocalDateTime;
+
+import com.trinhminhvi.techshop.user.dto.response.UserResponse;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class ReviewResponse {
+    private Integer reviewId;
+    private Integer rating;
+    private String comment;
+    private LocalDateTime createdAt;
+    private UserResponse user;
+}

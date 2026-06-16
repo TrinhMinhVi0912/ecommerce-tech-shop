@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.trinhminhvi.techshop.dto.response.ApiResponse;
+import com.trinhminhvi.techshop.common.ApiResponse;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {

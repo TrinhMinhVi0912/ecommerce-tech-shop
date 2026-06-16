@@ -4,8 +4,8 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.trinhminhvi.techshop.entity.User;
-import com.trinhminhvi.techshop.repository.UserRepository;
+import com.trinhminhvi.techshop.user.entity.User;
+import com.trinhminhvi.techshop.user.repository.UserRepository;
 
 @Configuration
 public class ApplicationInitConfig {

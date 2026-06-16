@@ -41,6 +41,7 @@ Hồ sơ cá nhân
     Cập nhật thông tin
     Đổi mật khẩu
     Quản lý địa chỉ giao hàng
+    
 Giỏ hàng & Thanh toán
     Giỏ hàng
     Thêm sản phẩm

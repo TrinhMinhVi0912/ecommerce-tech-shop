@@ -1,0 +1,81 @@
+package com.trinhminhvi.techshop.auth.controller;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.trinhminhvi.techshop.auth.dto.request.LoginRequest;
+import com.trinhminhvi.techshop.auth.dto.request.RegisterRequest;
+import com.trinhminhvi.techshop.auth.dto.response.LoginResponse;
+import com.trinhminhvi.techshop.auth.dto.response.RegisterResponse;
+import com.trinhminhvi.techshop.auth.service.AuthService;
+import com.trinhminhvi.techshop.common.ApiResponse;
+
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@RestController
+@RequestMapping("/auth")
+@RequiredArgsConstructor
+@CrossOrigin(origins = "*")
+@Slf4j
+public class AuthController {
+    private final AuthService authService;
+
+    @PostMapping("/register")
+    public ResponseEntity<ApiResponse<RegisterResponse>> register(@RequestBody RegisterRequest request) {
+        System.out.println(request.getEmail() + "\n" + request.getUserName());
+        return ResponseEntity.ok(ApiResponse.<RegisterResponse>builder()
+                .success(true)
+                .message("Register Successfully")
+                .data(authService.register(request))
+                .build());
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody LoginRequest request) {
+        return ResponseEntity.ok(
+                ApiResponse.success(authService.login(request), "Login Successfully"));
+    }
+
+    @PostMapping("/logout")
+    public ApiResponse<Object> logout(HttpServletRequest request) {
+
+        String authHeader = request.getHeader("Authorization");
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new RuntimeException("Token is missing");
+        }
+
+        String token = authHeader.substring(7);
+
+        authService.logout(token);
+
+        return ApiResponse.builder()
+                .success(true)
+                .message("Logout Successfully")
+                .data(null)
+                .build();
+    }
+
+    @PostMapping("/introspect")
+    public ApiResponse<Object> introspect(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new RuntimeException("Token is missing");
+        }
+
+        String token = authHeader.substring(7);
+        boolean isValidated = authService.introspectToken(token);
+        return ApiResponse.builder()
+                .success(isValidated)
+                .message("Token is valid")
+                .build();
+    }
+
+}
