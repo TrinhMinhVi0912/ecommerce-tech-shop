@@ -16,7 +16,8 @@ public class SecurityConfig {
             "/auth/login", "/auth/register", "/auth/logout", "/auth/introspect",
             "/products", "/products/*", "/products/*/*",
             "/images/products/*",
-            "/review/*/*"
+            "/review/*/*",
+            "users/*"
     };
     @Value("${jwt.secret}")
     private String secretKey;

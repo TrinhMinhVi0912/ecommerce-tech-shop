@@ -1,5 +1,4 @@
-package com.trinhminhvi.techshop.user.dto.response;
-
+package com.trinhminhvi.techshop.user.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,13 +11,11 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserResponse {
+public class ChangePasswordRequest {
 
-    private String userId;
+    private String oldPassword;
 
-    private String fullName;
-
-    private String avatarUrl;
+    private String newPassword;
     
+    private String confirmPassword;
 }
- 

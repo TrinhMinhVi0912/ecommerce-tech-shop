@@ -5,6 +5,8 @@ import org.mapstruct.Mapping;
 
 import com.trinhminhvi.techshop.auth.dto.request.RegisterRequest;
 import com.trinhminhvi.techshop.auth.dto.response.RegisterResponse;
+import com.trinhminhvi.techshop.user.dto.request.UpdateProfileUserRequest;
+import com.trinhminhvi.techshop.user.dto.response.UpdateProfileResponse;
 import com.trinhminhvi.techshop.user.entity.User;
 
 
@@ -16,4 +18,7 @@ public interface UserMapper {
     User toUser(RegisterRequest request);
 
     RegisterResponse toRegisterResponse(User user);
+
+    UpdateProfileResponse toUpdateProfileResponse(User user);
+    
 }

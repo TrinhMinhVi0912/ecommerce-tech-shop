@@ -1,5 +1,4 @@
-package com.trinhminhvi.techshop.user.dto.response;
-
+package com.trinhminhvi.techshop.user.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,13 +11,8 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserResponse {
-
-    private String userId;
-
+public class UpdateProfileUserRequest {
     private String fullName;
-
-    private String avatarUrl;
-    
+    private String phone;
+    private String avatarPath;
 }
- 

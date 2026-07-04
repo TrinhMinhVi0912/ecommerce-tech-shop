@@ -1,6 +1,5 @@
 package com.trinhminhvi.techshop.user.dto.response;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,13 +11,17 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserResponse {
+public class UpdateProfileResponse {
 
     private String userId;
 
+    private String email;
+
+    private String userName;
+
     private String fullName;
 
-    private String avatarUrl;
-    
+    private String phone;
+
+    private String avatarPath;
 }
- 
