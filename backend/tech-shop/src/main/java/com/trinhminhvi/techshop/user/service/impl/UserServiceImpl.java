@@ -1,5 +1,6 @@
 package com.trinhminhvi.techshop.user.service.impl;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.trinhminhvi.techshop.user.dto.request.ChangePasswordRequest;
@@ -18,6 +19,8 @@ import lombok.RequiredArgsConstructor;
 public class UserServiceImpl implements UserService{
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+
+    private final PasswordEncoder passwordEncoder;
     
     @Transactional
     @Override
@@ -34,9 +37,28 @@ public class UserServiceImpl implements UserService{
     }   
 
     @Override
+    @Transactional
     public void updatePassword(ChangePasswordRequest changePasswordRequest, String userId) {
-        // TODO Auto-generated method stub
         
+        
+        User user = userRepository.findById(userId).orElseThrow(
+            () -> new RuntimeException("User not found")
+        );
+
+        if(!changePasswordRequest.getNewPassword().equals(changePasswordRequest.getConfirmPassword())){
+            throw new RuntimeException("Confirm password dont match");
+        }
+        
+
+        if(changePasswordRequest.getNewPassword().equals(changePasswordRequest.getOldPassword())){
+            throw new RuntimeException("New password must be different from current password");
+        }
+
+        
+        if (!passwordEncoder.matches(changePasswordRequest.getOldPassword(), user.getPassword())) {
+            throw new RuntimeException("Current password is incorrect");
+        }
+        user.setPassword(passwordEncoder.encode(changePasswordRequest.getNewPassword()));
     }
     
 }
