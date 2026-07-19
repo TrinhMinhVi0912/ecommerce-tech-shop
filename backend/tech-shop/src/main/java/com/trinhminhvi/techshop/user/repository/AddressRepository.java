@@ -1,6 +1,7 @@
 package com.trinhminhvi.techshop.user.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -24,5 +25,10 @@ public interface AddressRepository extends JpaRepository<Address, Integer> {
                 WHERE a.user = :user
             """)
     int clearDefaultAddress(@Param("user") User user);
+
+    Optional<Address> findByAddressIdAndUser(Integer addressId, User user);
+
+    Optional<Address> findFirstByUserAndAddressIdNotOrderByAddressIdAsc(User user, Integer addressId);
+
 
 }

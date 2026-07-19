@@ -3,6 +3,8 @@ package com.trinhminhvi.techshop.product.entity;
 import java.math.BigDecimal;
 import java.util.List;
 
+import com.trinhminhvi.techshop.cart.entity.CartItem;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -43,4 +45,7 @@ public class ProductVariant {
 
     @OneToMany(mappedBy = "variant")
     private List<VariantAttribute> variantAttributes;
+
+    @OneToMany(mappedBy = "productVariant")
+    private List<CartItem> cartItems;
 }

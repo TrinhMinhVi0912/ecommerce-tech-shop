@@ -18,7 +18,7 @@ public class SecurityConfig {
             "/images/products/*",
             "/review/*/*",
             "/users/*",
-            "/addresses"
+            "/addresses","/addresses/*","/addresses/*/default"
     };
     @Value("${jwt.secret}")
     private String secretKey;
@@ -37,6 +37,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT,PUBLIC_ENDPOINTS).permitAll()
                         .requestMatchers(HttpMethod.DELETE,PUBLIC_ENDPOINTS).permitAll()
                         .requestMatchers(HttpMethod.POST,PUBLIC_ENDPOINTS).permitAll()
+                        .requestMatchers(HttpMethod.PATCH,PUBLIC_ENDPOINTS).permitAll()
                         .anyRequest().authenticated());
 
         // httpSecurity.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer ->
