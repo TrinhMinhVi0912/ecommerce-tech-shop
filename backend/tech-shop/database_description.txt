@@ -144,18 +144,47 @@ RAM 8G => Attribute value
 | variant_id (FK)   | INT  | Sản phẩm |
 | quantity          | INT  | Số lượng |
 
+
+Bảng order cũ: 
 📦 16. ORDER
 👉 Chức năng: Đơn hàng
 | Thuộc tính      | Kiểu     | Mô tả          |
 | --------------- | -------- | -------------- |
 | order_id (PK)   | CHAR(36) | ID đơn         |
 | user_id (FK)    | CHAR(36) | Người đặt      |
-| coupon_id (FK)  | INT      | Mã giảm giá    |
-| total_price     | INT      | Giá gốc        |
-| discount_amount | INT      | Giảm giá       |
-| final_price     | INT      | Giá thanh toán |
+| coupon_id (FK)  | Decimal(10,2)      | Mã giảm giá    |
+| total_price     | Decimal(10,2)       | Giá gốc        |
+| discount_amount | Decimal(10,2)       | Giảm giá       |
+| final_price     | Decimal(10,2)       | Giá thanh toán |
 | status          |VARCHAR(25)| Trạng thái   |
 | created_at      | DATETIME | Ngày tạo       |
+
+Bảng order mới:
+order_id
+user_id
+coupon_id
+total_price
+discount_amount
+final_price
+status
+created_at
+receiver_name
+receiver_phone
+
+
+receiver_address
+receiver_district
+receiver_city
+note
+payment_method
+updated_at
+
+
+
+
+
+
+
 
 📋 17. ORDER_ITEM
 👉 Chức năng: Chi tiết đơn hàng
@@ -182,11 +211,13 @@ RAM 8G => Attribute value
 | response_code  | INT | Mã phản hồi của cổng thanh toán |
 | payment_url  | VARCHAR(255) | Link thanh toán |
 | created_at  | DATETIME | Thời điểm tạo payments |
+| updated_at  | DATETIME | Thời điểm cập nhật payments |
 
 
 
 
 
+Coupon cũ
 🎟️ 19. COUPON
 👉 Chức năng: Mã giảm giá
 | Thuộc tính     | Kiểu        | Mô tả       |
@@ -194,14 +225,43 @@ RAM 8G => Attribute value
 | coupon_id (PK) | INT         | ID          |
 | code           | VARCHAR(50) | Mã          |
 | discount       | FLOAT       | % hoặc tiền |
+| discount_type  | Varchar(50) | loại discount| 
 | expire_date    | DATETIME    | Hạn dùng    |
 
-🔁 20. COUPON_USAGES
+
+| Cột              
+| ----------------
+| coupon_id        
+| code             
+| discount         
+| discount_type    
+| minimum_order    
+| maximum_discount 
+| quantity         
+| start_date       
+| expire_date      
+| active         
+| description      
+
+
+
+
+
+
+
+
+🔁 20. COUPON_USAGES cũ
 👉 Chức năng: Theo dõi user đã dùng coupon
 | Thuộc tính         | Kiểu     | Mô tả      |
 | ------------------ | -------- | ---------- |
 | user_id (PK, FK)   | CHAR(36) | Người dùng |
 | coupon_id (PK, FK) | INT      | Coupon     |
+
+Mới
+usage_id INT AUTO_INCREMENT PRIMARY KEY,
+user_id CHAR(36) NOT NULL,
+coupon_id INT NOT NULL,
+used_at DATETIME NOT NULL
 
 
 

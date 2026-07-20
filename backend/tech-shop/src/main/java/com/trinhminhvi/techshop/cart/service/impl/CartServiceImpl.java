@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.trinhminhvi.techshop.cart.dto.request.AddCartItemRequest;
+import com.trinhminhvi.techshop.cart.dto.request.UpdateCartItemRequest;
 import com.trinhminhvi.techshop.cart.dto.response.CartItemResponse;
 import com.trinhminhvi.techshop.cart.dto.response.CartResponse;
 import com.trinhminhvi.techshop.cart.dto.response.VariantAttributeResponse;
@@ -215,6 +216,59 @@ public class CartServiceImpl implements CartService {
                 .build();
 
         cartItemRepository.save(cartItem);
+    }
+
+    @Override
+    @Transactional
+    public void updateCartItem(
+            String userId,
+            Integer cartItemId,
+            UpdateCartItemRequest request) {
+
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+
+        CartItem cartItem = cartItemRepository.findById(cartItemId)
+                .orElseThrow(() -> new RuntimeException("Cart item not found"));
+
+        // Kiểm tra CartItem thuộc User hiện tại
+        if (!cartItem.getCart().getUser().getUserId().equals(user.getUserId())) {
+            throw new RuntimeException("You cannot update this cart item");
+        }
+
+        // quantity = 0 => xóa
+        if (request.getQuantity() == 0) {
+            cartItemRepository.delete(cartItem);
+            return;
+        }
+
+        ProductVariant variant = cartItem.getProductVariant();
+
+        validateStock(variant, request.getQuantity());
+
+        cartItem.setQuantity(request.getQuantity());
+
+        cartItemRepository.save(cartItem);
+    }
+
+    @Override
+    @Transactional
+    public void deleteCartItem(String userId, Integer cartItemId) {
+
+        // 1. Lấy User
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // 2. Lấy CartItem
+        CartItem cartItem = cartItemRepository.findById(cartItemId)
+                .orElseThrow(() -> new RuntimeException("Cart item not found"));
+
+        // 3. Kiểm tra CartItem có thuộc User hiện tại không
+        if (!cartItem.getCart().getUser().getUserId().equals(user.getUserId())) {
+            throw new RuntimeException("You cannot delete this cart item");
+        }
+
+        // 4. Xóa CartItem
+        cartItemRepository.delete(cartItem);
     }
 
 }
