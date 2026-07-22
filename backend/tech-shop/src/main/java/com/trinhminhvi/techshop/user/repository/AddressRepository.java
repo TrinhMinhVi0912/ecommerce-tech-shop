@@ -14,6 +14,7 @@ import com.trinhminhvi.techshop.user.entity.User;
 
 @Repository
 public interface AddressRepository extends JpaRepository<Address, Integer> {
+    
     List<Address> findByUser(User user);
 
     boolean existsByUser(User user);

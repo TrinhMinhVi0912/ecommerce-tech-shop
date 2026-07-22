@@ -58,8 +58,7 @@ Thanh toán
     COD
     Thanh toán online (VNPay sandbox – nếu có)
 
-Đơn hàng
-    Người dùng
+Đơn hàng Người dùng
     Xem danh sách đơn hàng
     Xem chi tiết đơn
     Hủy đơn

@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.trinhminhvi.techshop.cart.entity.Cart;
+import com.trinhminhvi.techshop.order.entity.Order;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -57,5 +58,8 @@ public class User {
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Cart cart;
+
+    @OneToMany(mappedBy = "user")
+    private List<Order> orders;
 
 }
