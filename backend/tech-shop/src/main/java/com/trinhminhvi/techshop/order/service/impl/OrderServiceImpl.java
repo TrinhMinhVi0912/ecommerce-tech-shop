@@ -29,6 +29,9 @@ import com.trinhminhvi.techshop.order.dto.request.GetMyOrdersRequest;
 import com.trinhminhvi.techshop.order.dto.request.NewAddressRequest;
 import com.trinhminhvi.techshop.order.dto.request.OrderSummaryResponse;
 import com.trinhminhvi.techshop.order.dto.response.CheckoutResponse;
+import com.trinhminhvi.techshop.order.dto.response.OrderDetailResponse;
+import com.trinhminhvi.techshop.order.dto.response.OrderItemDetailResponse;
+import com.trinhminhvi.techshop.order.dto.response.VariantAttributeResponse;
 import com.trinhminhvi.techshop.order.entity.Coupon;
 import com.trinhminhvi.techshop.order.entity.CouponUsage;
 import com.trinhminhvi.techshop.order.entity.Order;
@@ -47,6 +50,7 @@ import com.trinhminhvi.techshop.order.service.OrderService;
 import com.trinhminhvi.techshop.product.entity.Product;
 import com.trinhminhvi.techshop.product.entity.ProductImage;
 import com.trinhminhvi.techshop.product.entity.ProductVariant;
+import com.trinhminhvi.techshop.product.entity.VariantAttribute;
 import com.trinhminhvi.techshop.product.repository.ProductVariantRepository;
 import com.trinhminhvi.techshop.user.entity.Address;
 import com.trinhminhvi.techshop.user.entity.User;
@@ -538,62 +542,6 @@ public class OrderServiceImpl implements OrderService {
                 .build();
     }
 
-    // CHECKOUT
-
-    @Override
-    @Transactional
-    public CheckoutResponse checkout(String userId, CheckoutRequest request) {
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        validateCheckoutRequest(request);
-
-        CheckoutAddress checkoutAddress = getCheckoutAddress(user, request);
-
-        // System.out.println("==============================");
-        // System.out.println("Address đã tạo trong checkout");
-
-        // System.out.println(checkoutAddress.getReceiverName());
-        // System.out.println(checkoutAddress.getReceiverPhone());
-
-        List<CartItem> cartItems = getCheckoutCartItems(user, request);
-
-        validateStock(cartItems);
-
-        PriceSummary priceSummary = calculatePriceSummary(cartItems);
-
-        Coupon coupon = validateCoupon(user, request, priceSummary);
-
-        BigDecimal discount = calculateDiscount(
-                coupon,
-                priceSummary.getTotalPrice());
-
-        applyCoupon(priceSummary, discount);
-
-        Order order = createOrder(
-                user,
-                checkoutAddress,
-                request,
-                priceSummary,
-                coupon);
-
-        createOrderItems(order, cartItems);
-
-        Payment payment = createPayment(
-                order,
-                request,
-                priceSummary);
-
-        updateStock(cartItems);
-
-        saveCouponUsage(user, coupon);
-
-        // removeCartItems(cartItems);
-
-        return buildCheckoutResponse(order, payment);
-    }
-
     // HELPER CHO CHỨC NĂNG GET ORDER
     private Page<Order> getOrderPage(
             User user,
@@ -675,6 +623,178 @@ public class OrderServiceImpl implements OrderService {
                 .build();
     }
 
+    // HELPER cho hàm lấy chi tiết order
+
+    private List<VariantAttributeResponse> mapVariantAttributes(
+            List<VariantAttribute> variantAttributes) {
+
+        return variantAttributes.stream()
+
+                .map(attribute -> VariantAttributeResponse.builder()
+
+                        .attributeName(
+                                attribute.getAttrValue()
+                                        .getAttribute()
+                                        .getName())
+
+                        .value(
+                                attribute.getAttrValue()
+                                        .getValue())
+
+                        .build())
+
+                .toList();
+    }
+
+    private OrderItemDetailResponse mapOrderItem(
+            OrderItem orderItem) {
+
+        ProductVariant variant = orderItem.getProductVariant();
+
+        Product product = variant.getProduct();
+
+        return OrderItemDetailResponse.builder()
+
+                .productId(product.getProductId())
+
+                .productName(product.getName())
+
+                .thumbnail(product.getThumbnailPath())
+
+                .sku(variant.getSku())
+
+                .price(orderItem.getPrice())
+
+                .quantity(orderItem.getQuantity())
+
+                .attributes(
+                        mapVariantAttributes(
+                                variant.getVariantAttributes()))
+
+                .build();
+    }
+
+    private OrderDetailResponse buildOrderDetailResponse(
+            Order order) {
+
+        Payment payment = order.getPayment();
+
+        PaymentProvider provider = payment == null ? null : payment.getProvider();
+
+        PaymentStatus status = payment == null ? null : payment.getStatus();
+
+        return OrderDetailResponse.builder()
+                .orderId(order.getOrderId())
+
+                .receiverName(order.getReceiverName())
+                .receiverPhone(order.getReceiverPhone())
+
+                .receiverAddress(order.getReceiverAddress())
+                .receiverDistrict(order.getReceiverDistrict())
+                .receiverCity(order.getReceiverCity())
+
+                .note(order.getNote())
+
+                .paymentMethod(order.getPaymentMethod())
+                .paymentProvider(provider)
+                .paymentStatus(status)
+
+                .orderStatus(order.getStatus())
+
+                .totalPrice(order.getTotalPrice())
+                .discountAmount(order.getDiscountAmount())
+                .finalPrice(order.getFinalPrice())
+
+                .couponCode(
+                        order.getCoupon() == null
+                                ? null
+                                : order.getCoupon().getCode())
+
+                .createdAt(order.getCreatedAt())
+
+                .items(
+                        order.getOrderItems()
+                                .stream()
+                                .map(this::mapOrderItem)
+                                .toList())
+
+                .build();
+    }
+
+    // HEPPER DÀNH CHO CHỨC NĂNG CANCELLED
+
+    private void validateCancelable(Order order) {
+
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new RuntimeException(
+                    "Only pending orders can be cancelled.");
+        }
+    }
+
+    private void cancelOrderStatus(Order order) {
+
+        order.setStatus(OrderStatus.CANCELLED);
+
+        orderRepository.save(order);
+    }
+
+    private void cancelPayment(Order order) {
+
+        Payment payment = order.getPayment();
+
+        if (payment == null) {
+            return;
+        }
+
+        switch (payment.getMethod()) {
+
+            case COD -> payment.setStatus(
+                    PaymentStatus.CANCELLED);
+
+            case VNPAY, MOMO -> payment.setStatus(
+                    PaymentStatus.REFUND_PENDING);
+        }
+
+        paymentRepository.save(payment);
+    }
+
+    private void restoreStock(Order order) {
+
+        List<ProductVariant> variants = new ArrayList<>();
+
+        for (OrderItem orderItem : order.getOrderItems()) {
+
+            ProductVariant variant = orderItem.getProductVariant();
+
+            variant.setStock(
+                    variant.getStock() + orderItem.getQuantity());
+
+            variants.add(variant);
+        }
+
+        productVariantRepository.saveAll(variants);
+    }
+
+    private void restoreCoupon(User user, Order order) {
+
+        Coupon coupon = order.getCoupon();
+
+        if (coupon == null) {
+            return;
+        }
+
+        couponUsageRepository.deleteByUserAndCoupon(
+                user,
+                coupon);
+
+        coupon.setQuantity(
+                coupon.getQuantity() + 1);
+
+        couponRepository.save(coupon);
+    }
+
+    // Hàm chức năng
+
     @Override
     @Transactional(readOnly = true)
     public PageableResponse<List<OrderSummaryResponse>> getMyOrders(
@@ -700,5 +820,97 @@ public class OrderServiceImpl implements OrderService {
 
         return buildPageableResponse(orderPage, responses);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public OrderDetailResponse getMyOrderDetail(String userId, String orderId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found."));
+
+        Order order = orderRepository.findOrderDetail(orderId, user)
+                .orElseThrow(() -> new RuntimeException("Order not found."));
+
+        return buildOrderDetailResponse(order);
+    }
+
+    // CHECKOUT
+
+    @Override
+    @Transactional
+    public CheckoutResponse checkout(String userId, CheckoutRequest request) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        validateCheckoutRequest(request);
+
+        CheckoutAddress checkoutAddress = getCheckoutAddress(user, request);
+
+        // System.out.println("==============================");
+        // System.out.println("Address đã tạo trong checkout");
+
+        // System.out.println(checkoutAddress.getReceiverName());
+        // System.out.println(checkoutAddress.getReceiverPhone());
+
+        List<CartItem> cartItems = getCheckoutCartItems(user, request);
+
+        validateStock(cartItems);
+
+        PriceSummary priceSummary = calculatePriceSummary(cartItems);
+
+        Coupon coupon = validateCoupon(user, request, priceSummary);
+
+        BigDecimal discount = calculateDiscount(
+                coupon,
+                priceSummary.getTotalPrice());
+
+        applyCoupon(priceSummary, discount);
+
+        Order order = createOrder(
+                user,
+                checkoutAddress,
+                request,
+                priceSummary,
+                coupon);
+
+        createOrderItems(order, cartItems);
+
+        Payment payment = createPayment(
+                order,
+                request,
+                priceSummary);
+
+        updateStock(cartItems);
+
+        saveCouponUsage(user, coupon);
+
+        // removeCartItems(cartItems);
+
+        return buildCheckoutResponse(order, payment);
+    }
+
+    @Override
+    @Transactional
+    public void cancelOrder(String userId, String orderId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found."));
+
+        Order order = orderRepository.findByOrderIdAndUser(orderId, user)
+                .orElseThrow(() -> new RuntimeException("Order not found."));
+
+        validateCancelable(order);
+
+        cancelOrderStatus(order);
+
+        cancelPayment(order);
+
+        restoreStock(order);
+
+        restoreCoupon(user, order);
+    }
+
+
 
 }

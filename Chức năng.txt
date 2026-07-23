@@ -102,6 +102,8 @@ Quản lý danh mục / hãng
 Quản lý khuyến mãi
     Tạo mã giảm giá
     Flash sale
+
+Xem Các Thanh toán cần hoàn tiền
 -------------------------------------------
 Business Logic (Lưu ý)
     Kiểm tra tồn kho khi đặt hàng

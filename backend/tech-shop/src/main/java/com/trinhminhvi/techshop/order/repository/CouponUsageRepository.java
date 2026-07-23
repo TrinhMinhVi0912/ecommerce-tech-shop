@@ -10,4 +10,6 @@ import com.trinhminhvi.techshop.user.entity.User;
 @Repository
 public interface CouponUsageRepository extends JpaRepository<CouponUsage, Integer> {
     boolean existsByUserAndCoupon(User user, Coupon coupon);
+
+    void deleteByUserAndCoupon(User user, Coupon coupon);
 }

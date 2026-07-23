@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,6 +17,7 @@ import com.trinhminhvi.techshop.order.dto.request.CheckoutRequest;
 import com.trinhminhvi.techshop.order.dto.request.GetMyOrdersRequest;
 import com.trinhminhvi.techshop.order.dto.request.OrderSummaryResponse;
 import com.trinhminhvi.techshop.order.dto.response.CheckoutResponse;
+import com.trinhminhvi.techshop.order.dto.response.OrderDetailResponse;
 import com.trinhminhvi.techshop.order.service.OrderService;
 import com.trinhminhvi.techshop.security.JwtService;
 
@@ -47,6 +50,22 @@ public class OrderController {
                 .build();
     }
 
+    @GetMapping("/{orderId}")
+    public ApiResponse<OrderDetailResponse> getMyOrderDetail(
+            @PathVariable String orderId,
+            HttpServletRequest servletRequest) {
+
+        String token = jwtService.extractToken(servletRequest);
+
+        String userId = jwtService.extractUserIdFromToken(token);
+
+        return ApiResponse.<OrderDetailResponse>builder()
+                .success(true)
+                .message("Get Order Detail Successfully")
+                .data(orderService.getMyOrderDetail(userId, orderId))
+                .build();
+    }
+
     @PostMapping("/checkout")
     public ApiResponse<CheckoutResponse> checkout(
             @RequestBody @Valid CheckoutRequest request,
@@ -62,4 +81,22 @@ public class OrderController {
                 .data(orderService.checkout(userId, request))
                 .build();
     }
+
+    @PatchMapping("/{orderId}/cancel")
+    public ApiResponse<Void> cancelOrder(
+            @PathVariable String orderId,
+            HttpServletRequest servletRequest) {
+
+        String token = jwtService.extractToken(servletRequest);
+
+        String userId = jwtService.extractUserIdFromToken(token);
+
+        orderService.cancelOrder(userId, orderId);
+
+        return ApiResponse.<Void>builder()
+                .success(true)
+                .message("Cancel order successfully.")
+                .build();
+    }
+
 }
