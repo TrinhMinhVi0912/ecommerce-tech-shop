@@ -21,7 +21,8 @@ public class SecurityConfig {
             "/addresses","/addresses/*","/addresses/*/default",
             "/cart","/cart/*","/cart/*/*",
             "/orders","/orders/*","/orders/*/*",
-            "/payment/*","/payment/*/*"
+            "/payment/*","/payment/*/*",
+            "/wishlist","/wishlist/*"
     };
     @Value("${jwt.secret}")
     private String secretKey;

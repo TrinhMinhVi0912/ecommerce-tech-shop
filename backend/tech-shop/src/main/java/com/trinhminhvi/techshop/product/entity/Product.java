@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.trinhminhvi.techshop.brand.entity.Brand;
 import com.trinhminhvi.techshop.category.entity.Category;
+import com.trinhminhvi.techshop.wishlist.entity.Wishlist;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -58,7 +59,9 @@ public class Product {
     @OneToMany(mappedBy = "product")
     private List<ProductImage> productImages;
 
-    
+    @OneToMany(mappedBy = "product")
+    private List<Wishlist> wishlists;
+
     public String getThumbnailPath() {
         if (productImages == null) {
             return null;

@@ -8,12 +8,15 @@ import java.util.Map;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.trinhminhvi.techshop.brand.mapper.BrandMapper;
 import com.trinhminhvi.techshop.category.mapper.CategoryMapper;
 import com.trinhminhvi.techshop.common.PageableResponse;
 import com.trinhminhvi.techshop.product.dto.request.GetProductsRequest;
 import com.trinhminhvi.techshop.product.dto.response.AttriubutesValueResponse;
+import com.trinhminhvi.techshop.product.dto.response.CompareItemResponse;
+import com.trinhminhvi.techshop.product.dto.response.CompareProductResponse;
 import com.trinhminhvi.techshop.product.dto.response.ProductDetailResponse;
 import com.trinhminhvi.techshop.product.dto.response.ProductImageResponse;
 import com.trinhminhvi.techshop.product.dto.response.ProductResponse;
@@ -39,92 +42,173 @@ import com.trinhminhvi.techshop.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
-
-
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
 
-    private final ProductRepository productRepository;
-    private final VariantAttributeRepository variantAttributeRepository;
-    private final ProductVariantRepository productVariantRepository;
-    private final ProductImageRepository productImageRepository;
-    private final UserRepository userRepository;
-    private final ReviewRepository reviewRepository;
+        private final ProductRepository productRepository;
+        private final VariantAttributeRepository variantAttributeRepository;
+        private final ProductVariantRepository productVariantRepository;
+        private final ProductImageRepository productImageRepository;
+        private final UserRepository userRepository;
+        private final ReviewRepository reviewRepository;
 
-    private final ProductMapper productMapper;
-    private final BrandMapper brandMapper;
-    private final CategoryMapper categoryMapper;
-    private final ProductVariantMapper productVariantMapper;
-    private final ProductImageMapper productImageMapper;
+        private final ProductMapper productMapper;
+        private final BrandMapper brandMapper;
+        private final CategoryMapper categoryMapper;
+        private final ProductVariantMapper productVariantMapper;
+        private final ProductImageMapper productImageMapper;
 
-    @Override
-    public PageableResponse<List<ProductResponse>> getAllProduct(Pageable pageable,
-            GetProductsRequest getAllProductRequest) {
-        Page<Product> pageProducts = productRepository.searchProduct(
-                getAllProductRequest.getSearch(),
-                getAllProductRequest.getMinPrice(),
-                getAllProductRequest.getMaxPrice(),
-                getAllProductRequest.getBrandId(),
-                getAllProductRequest.getCategoryId(),
-                pageable);
+        // Helper cho so sánh sản phẩm
+        private CompareItemResponse buildCompareItem(Product product) {
 
-        List<ProductResponse> listProductResponse = pageProducts.getContent().stream()
-                .map(product -> {
-                    ProductResponse productResponse = productMapper.toProductResponse(product);
-                    productResponse.setThumbnailImagePath(product.getThumbnailPath());
-                    return productResponse;
-                })
-                .toList();
+                List<ProductVariant> variants = productVariantRepository
+                                .findAllByProductWithAttributes(product);
 
-        return PageableResponse.<List<ProductResponse>>builder()
-                .pageNum(getAllProductRequest.getPageNum())
-                .pageSize(getAllProductRequest.getPageSize())
-                .totalElements(pageProducts.getTotalElements())
-                .totalPages(pageProducts.getTotalPages())
-                .items(listProductResponse)
-                .build();
-    }
+                List<ProductImage> images = productImageRepository
+                                .findAllByProduct(product);
 
-    @Override
-    public ProductDetailResponse getProductById(Integer id) {
-        Product product = productRepository.findById(id).orElseThrow(
-                () -> new RuntimeException("Product Not Found"));
+                String thumbnail = images.stream()
+                                .filter(ProductImage::isThumbnail)
+                                .map(ProductImage::getImagePath)
+                                .findFirst()
+                                .orElse("/images/products/default.jpg");
 
-        List<ProductVariant> listVariantAndAtributes = productVariantRepository.findAllByProductWithAttributes(product);
-        List<ProductImage> listProductImages = productImageRepository.findAllByProduct(product);
+                return CompareItemResponse.builder()
+                                .productId(product.getProductId())
+                                .name(product.getName())
+                                .description(product.getDescription())
+                                .basePrice(product.getBasePrice())
+                                .brandResponse(brandMapper.toBrandResponse(product.getBrand()))
+                                .categoryResponse(categoryMapper.toCategoryResponse(product.getCategory()))
+                                .thumbnailImagePath(thumbnail)
 
-        return ProductDetailResponse.builder()
-                .productId(product.getProductId())
-                .basePrice(product.getBasePrice())
-                .name(product.getName())
-                .description(product.getDescription())
-                .brandResponse(brandMapper.toBrandResponse(product.getBrand()))
-                .categoryResponse(categoryMapper.toCategoryResponse(product.getCategory()))
+                                .variants(
+                                                variants.stream().map(v -> {
 
-                .images(listProductImages.stream().map(p -> {
-                    return ProductImageResponse.builder()
-                            .imagePath(p.getImagePath())
-                            .isThumbnail(p.isThumbnail())
-                            .build();
-                }).toList())
+                                                        ProductVariantResponse response = productVariantMapper
+                                                                        .toProductVariantResponse(v);
 
-                .variants(listVariantAndAtributes.stream().map(p -> {
-                    ProductVariantResponse productVariantResponse = productVariantMapper.toProductVariantResponse(p);
-                    productVariantResponse.setAttributes(
-                            p.getVariantAttributes().stream().map(
-                                    va -> {
-                                        AttriubutesValueResponse attriubutesValueResponse = AttriubutesValueResponse
-                                                .builder()
-                                                .name(va.getAttrValue().getAttribute().getName())
-                                                .value(va.getAttrValue().getValue())
-                                                .build();
-                                        return attriubutesValueResponse;
-                                    }).toList());
-                    return productVariantResponse;
-                }).toList()) //
+                                                        response.setAttributes(
+                                                                        v.getVariantAttributes().stream()
+                                                                                        .map(va -> AttriubutesValueResponse
+                                                                                                        .builder()
+                                                                                                        .name(va.getAttrValue()
+                                                                                                                        .getAttribute()
+                                                                                                                        .getName())
+                                                                                                        .value(va.getAttrValue()
+                                                                                                                        .getValue())
+                                                                                                        .build())
+                                                                                        .toList());
 
-                .build();
-    }
+                                                        return response;
+
+                                                }).toList())
+
+                                .build();
+        }
+
+        @Override
+        public PageableResponse<List<ProductResponse>> getAllProduct(Pageable pageable,
+                        GetProductsRequest getAllProductRequest) {
+                Page<Product> pageProducts = productRepository.searchProduct(
+                                getAllProductRequest.getSearch(),
+                                getAllProductRequest.getMinPrice(),
+                                getAllProductRequest.getMaxPrice(),
+                                getAllProductRequest.getBrandId(),
+                                getAllProductRequest.getCategoryId(),
+                                pageable);
+
+                List<ProductResponse> listProductResponse = pageProducts.getContent().stream()
+                                .map(product -> {
+                                        ProductResponse productResponse = productMapper.toProductResponse(product);
+                                        productResponse.setThumbnailImagePath(product.getThumbnailPath());
+                                        return productResponse;
+                                })
+                                .toList();
+
+                return PageableResponse.<List<ProductResponse>>builder()
+                                .pageNum(getAllProductRequest.getPageNum())
+                                .pageSize(getAllProductRequest.getPageSize())
+                                .totalElements(pageProducts.getTotalElements())
+                                .totalPages(pageProducts.getTotalPages())
+                                .items(listProductResponse)
+                                .build();
+        }
+
+        @Override
+        public ProductDetailResponse getProductById(Integer id) {
+                Product product = productRepository.findById(id).orElseThrow(
+                                () -> new RuntimeException("Product Not Found"));
+
+                List<ProductVariant> listVariantAndAtributes = productVariantRepository
+                                .findAllByProductWithAttributes(product);
+                List<ProductImage> listProductImages = productImageRepository.findAllByProduct(product);
+
+                return ProductDetailResponse.builder()
+                                .productId(product.getProductId())
+                                .basePrice(product.getBasePrice())
+                                .name(product.getName())
+                                .description(product.getDescription())
+                                .brandResponse(brandMapper.toBrandResponse(product.getBrand()))
+                                .categoryResponse(categoryMapper.toCategoryResponse(product.getCategory()))
+
+                                .images(listProductImages.stream().map(p -> {
+                                        return ProductImageResponse.builder()
+                                                        .imagePath(p.getImagePath())
+                                                        .isThumbnail(p.isThumbnail())
+                                                        .build();
+                                }).toList())
+
+                                .variants(listVariantAndAtributes.stream().map(p -> {
+                                        ProductVariantResponse productVariantResponse = productVariantMapper
+                                                        .toProductVariantResponse(p);
+                                        productVariantResponse.setAttributes(
+                                                        p.getVariantAttributes().stream().map(
+                                                                        va -> {
+                                                                                AttriubutesValueResponse attriubutesValueResponse = AttriubutesValueResponse
+                                                                                                .builder()
+                                                                                                .name(va.getAttrValue()
+                                                                                                                .getAttribute()
+                                                                                                                .getName())
+                                                                                                .value(va.getAttrValue()
+                                                                                                                .getValue())
+                                                                                                .build();
+                                                                                return attriubutesValueResponse;
+                                                                        }).toList());
+                                        return productVariantResponse;
+                                }).toList()) //
+
+                                .build();
+        }
+
+        @Override
+        @Transactional(readOnly = true)
+        public CompareProductResponse compareProducts(
+                        Integer productId1,
+                        Integer productId2) {
+
+                if (productId1.equals(productId2)) {
+                        throw new RuntimeException("Cannot compare the same product.");
+                }
+
+                Product product1 = productRepository.findById(productId1)
+                                .orElseThrow(() -> new RuntimeException("Product not found."));
+
+                Product product2 = productRepository.findById(productId2)
+                                .orElseThrow(() -> new RuntimeException("Product not found."));
+
+                if (!product1.getCategory().getCategoryId()
+                                .equals(product2.getCategory().getCategoryId())) {
+
+                        throw new RuntimeException("Products must belong to the same category.");
+                }
+
+                return CompareProductResponse.builder()
+                                .products(List.of(
+                                                buildCompareItem(product1),
+                                                buildCompareItem(product2)))
+                                .build();
+        }
 
 }

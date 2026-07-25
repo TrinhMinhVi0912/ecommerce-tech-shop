@@ -5,10 +5,15 @@ import org.springframework.data.domain.Pageable;
 
 import com.trinhminhvi.techshop.common.PageableResponse;
 import com.trinhminhvi.techshop.product.dto.request.GetProductsRequest;
+import com.trinhminhvi.techshop.product.dto.response.CompareProductResponse;
 import com.trinhminhvi.techshop.product.dto.response.ProductDetailResponse;
 import com.trinhminhvi.techshop.product.dto.response.ProductResponse;
 
 public interface ProductService {
-    public PageableResponse<List<ProductResponse>> getAllProduct(Pageable pageable,GetProductsRequest getAllProductRequest);
+    
+    public PageableResponse<List<ProductResponse>> getAllProduct(Pageable pageable, GetProductsRequest getAllProductRequest);
+
     public ProductDetailResponse getProductById(Integer id);
+
+    CompareProductResponse compareProducts(Integer productId1, Integer productId2);
 }

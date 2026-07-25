@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.trinhminhvi.techshop.cart.entity.Cart;
 import com.trinhminhvi.techshop.order.entity.Order;
+import com.trinhminhvi.techshop.wishlist.entity.Wishlist;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -61,5 +62,8 @@ public class User {
 
     @OneToMany(mappedBy = "user")
     private List<Order> orders;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Wishlist> wishlists;
 
 }

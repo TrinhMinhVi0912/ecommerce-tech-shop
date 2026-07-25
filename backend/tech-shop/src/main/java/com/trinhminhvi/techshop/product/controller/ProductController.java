@@ -6,11 +6,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.trinhminhvi.techshop.common.ApiResponse;
 import com.trinhminhvi.techshop.common.PageableResponse;
 import com.trinhminhvi.techshop.product.dto.request.GetProductsRequest;
+import com.trinhminhvi.techshop.product.dto.response.CompareProductResponse;
 import com.trinhminhvi.techshop.product.dto.response.ProductDetailResponse;
 import com.trinhminhvi.techshop.product.dto.response.ProductResponse;
 import com.trinhminhvi.techshop.product.service.ProductService;
@@ -57,6 +59,19 @@ public class ProductController {
                 .success(true)
                 .message("Get Detail Product Successfully")
                 .data(productService.getProductById(id))
+                .build();
+    }
+
+
+    @GetMapping("/compare")
+    public ApiResponse<CompareProductResponse> compareProducts(
+            @RequestParam Integer productId1,
+            @RequestParam Integer productId2) {
+
+        return ApiResponse.<CompareProductResponse>builder()
+                .success(true)
+                .message("Compare products successfully.")
+                .data(productService.compareProducts(productId1, productId2))
                 .build();
     }
 }
