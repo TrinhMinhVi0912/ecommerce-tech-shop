@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.trinhminhvi.techshop.order.enums.OrderStatus;
 import com.trinhminhvi.techshop.order.enums.PaymentMethod;
+import com.trinhminhvi.techshop.payment.entity.Payment;
 import com.trinhminhvi.techshop.user.entity.User;
 
 import jakarta.persistence.Column;

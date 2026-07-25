@@ -36,17 +36,18 @@ import com.trinhminhvi.techshop.order.entity.Coupon;
 import com.trinhminhvi.techshop.order.entity.CouponUsage;
 import com.trinhminhvi.techshop.order.entity.Order;
 import com.trinhminhvi.techshop.order.entity.OrderItem;
-import com.trinhminhvi.techshop.order.entity.Payment;
 import com.trinhminhvi.techshop.order.enums.DiscountType;
 import com.trinhminhvi.techshop.order.enums.OrderStatus;
+import com.trinhminhvi.techshop.order.enums.PaymentMethod;
 import com.trinhminhvi.techshop.order.enums.PaymentProvider;
 import com.trinhminhvi.techshop.order.enums.PaymentStatus;
 import com.trinhminhvi.techshop.order.repository.CouponRepository;
 import com.trinhminhvi.techshop.order.repository.CouponUsageRepository;
 import com.trinhminhvi.techshop.order.repository.OrderItemRepository;
 import com.trinhminhvi.techshop.order.repository.OrderRepository;
-import com.trinhminhvi.techshop.order.repository.PaymentRepository;
 import com.trinhminhvi.techshop.order.service.OrderService;
+import com.trinhminhvi.techshop.payment.entity.Payment;
+import com.trinhminhvi.techshop.payment.repository.PaymentRepository;
 import com.trinhminhvi.techshop.product.entity.Product;
 import com.trinhminhvi.techshop.product.entity.ProductImage;
 import com.trinhminhvi.techshop.product.entity.ProductVariant;
@@ -437,6 +438,19 @@ public class OrderServiceImpl implements OrderService {
         orderItemRepository.saveAll(orderItems);
     }
 
+    private PaymentProvider getPaymentProvider(
+            PaymentMethod paymentMethod) {
+
+        return switch (paymentMethod) {
+
+            case COD -> PaymentProvider.INTERNAL;
+
+            case VNPAY -> PaymentProvider.VNPAY;
+
+            case MOMO -> PaymentProvider.MOMO;
+        };
+    }
+
     // Tạo Payment
     private Payment createPayment(
             Order order,
@@ -446,9 +460,9 @@ public class OrderServiceImpl implements OrderService {
         Payment payment = Payment.builder()
                 .order(order)
                 .method(request.getPaymentMethod())
+                .provider(getPaymentProvider(request.getPaymentMethod()))
                 .amount(priceSummary.getFinalPrice())
                 .status(PaymentStatus.PENDING)
-                .provider(PaymentProvider.INTERNAL)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -885,7 +899,7 @@ public class OrderServiceImpl implements OrderService {
 
         saveCouponUsage(user, coupon);
 
-        // removeCartItems(cartItems);
+        removeCartItems(cartItems);
 
         return buildCheckoutResponse(order, payment);
     }
@@ -910,7 +924,5 @@ public class OrderServiceImpl implements OrderService {
 
         restoreCoupon(user, order);
     }
-
-
 
 }

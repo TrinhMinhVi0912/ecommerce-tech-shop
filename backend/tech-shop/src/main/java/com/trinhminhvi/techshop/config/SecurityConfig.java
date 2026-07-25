@@ -13,14 +13,15 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final String[] PUBLIC_ENDPOINTS = {
-            "/auth/login", "/auth/register", "/auth/logout", "/auth/introspect",
+            "/auth/*",
             "/products", "/products/*", "/products/*/*",
             "/images/products/*",
             "/review/*/*",
             "/users/*",
             "/addresses","/addresses/*","/addresses/*/default",
             "/cart","/cart/*","/cart/*/*",
-            "/orders","/orders/*","/orders/*/*"
+            "/orders","/orders/*","/orders/*/*",
+            "/payment/*","/payment/*/*"
     };
     @Value("${jwt.secret}")
     private String secretKey;

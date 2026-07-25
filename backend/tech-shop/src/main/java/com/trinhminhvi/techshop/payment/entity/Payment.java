@@ -1,8 +1,9 @@
-package com.trinhminhvi.techshop.order.entity;
+package com.trinhminhvi.techshop.payment.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.trinhminhvi.techshop.order.entity.Order;
 import com.trinhminhvi.techshop.order.enums.PaymentMethod;
 import com.trinhminhvi.techshop.order.enums.PaymentProvider;
 import com.trinhminhvi.techshop.order.enums.PaymentStatus;
