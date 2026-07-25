@@ -45,4 +45,5 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
             Pageable pageable);
 
 
+    boolean existsByCategoryCategoryId(Integer categoryId);
 }
