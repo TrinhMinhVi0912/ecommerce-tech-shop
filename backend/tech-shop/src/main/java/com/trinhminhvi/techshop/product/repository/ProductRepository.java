@@ -46,4 +46,6 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
 
 
     boolean existsByCategoryCategoryId(Integer categoryId);
+
+    boolean existsByBrandBrandId(Integer brandId);
 }

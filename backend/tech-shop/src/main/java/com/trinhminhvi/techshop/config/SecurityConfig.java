@@ -23,7 +23,8 @@ public class SecurityConfig {
             "/orders","/orders/*","/orders/*/*",
             "/payment/*","/payment/*/*",
             "/wishlist","/wishlist/*",
-            "/categories","/categories/*"
+            "/categories","/categories/*",
+            "/brands","/brands/*"
     };
     @Value("${jwt.secret}")
     private String secretKey;
