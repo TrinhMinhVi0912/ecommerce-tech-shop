@@ -4,13 +4,19 @@ import java.util.List;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.MediaType;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.trinhminhvi.techshop.common.ApiResponse;
 import com.trinhminhvi.techshop.common.PageableResponse;
+import com.trinhminhvi.techshop.product.dto.request.CreateProductRequest;
 import com.trinhminhvi.techshop.product.dto.request.GetProductsRequest;
 import com.trinhminhvi.techshop.product.dto.response.CompareProductResponse;
 import com.trinhminhvi.techshop.product.dto.response.ProductDetailResponse;
@@ -20,6 +26,7 @@ import com.trinhminhvi.techshop.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 
 @RestController
 @RequestMapping("/products")
@@ -62,7 +69,6 @@ public class ProductController {
                 .build();
     }
 
-
     @GetMapping("/compare")
     public ApiResponse<CompareProductResponse> compareProducts(
             @RequestParam Integer productId1,
@@ -74,4 +80,28 @@ public class ProductController {
                 .data(productService.compareProducts(productId1, productId2))
                 .build();
     }
+
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<ProductDetailResponse> createProduct(
+            @RequestPart("product") String productJson,
+            @RequestPart("images") List<MultipartFile> images) throws Exception {
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        CreateProductRequest request = objectMapper.readValue(productJson, CreateProductRequest.class);
+
+        return ApiResponse.success(
+                productService.createProduct(request, images),
+                "Create Product Successfully");
+    }
+
+    // @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    // public ApiResponse<ProductDetailResponse> createProduct(
+    //         @RequestPart("product") @Validated CreateProductRequest request,
+    //         @RequestPart("images") List<MultipartFile> images) {
+
+    //     return ApiResponse.success(
+    //             productService.createProduct(request, images),
+    //             "Create Product Successfully");
+    // }
 }

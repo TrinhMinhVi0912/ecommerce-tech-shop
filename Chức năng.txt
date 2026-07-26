@@ -82,10 +82,13 @@ Dashboard
     Sản phẩm bán chạy
 
 Quản lý sản phẩm
-    Thêm / sửa / xóa sản phẩm
+    Thêm / sửa / xóa sản phẩm 
+(Thêm và update có thể upload 1 lần nhiều ảnh cho ProductImage)
+(Thêm ít nhất 1 variant của sản phẩm) và thêm các những khác liên quan
+(Tôi đã có endpoint cho quản lý categories và brand)
 
 Quản lý cấu hình (variant)
-    Upload ảnh
+
 
 Quản lý đơn hàng
     Xem danh sách đơn

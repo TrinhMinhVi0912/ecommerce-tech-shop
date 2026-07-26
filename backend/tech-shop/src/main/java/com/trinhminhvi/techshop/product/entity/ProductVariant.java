@@ -1,6 +1,7 @@
 package com.trinhminhvi.techshop.product.entity;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.trinhminhvi.techshop.cart.entity.CartItem;
@@ -48,12 +49,12 @@ public class ProductVariant {
     private String sku;
 
     @OneToMany(mappedBy = "variant")
-    private List<VariantAttribute> variantAttributes;
+    private List<VariantAttribute> variantAttributes = new ArrayList<>();
 
     @OneToMany(mappedBy = "productVariant")
-    private List<CartItem> cartItems;
+    private List<CartItem> cartItems = new ArrayList<>();;
 
     @OneToMany(mappedBy = "productVariant")
-    private List<OrderItem> orderItems;
+    private List<OrderItem> orderItems = new ArrayList<>();;
 
 }
