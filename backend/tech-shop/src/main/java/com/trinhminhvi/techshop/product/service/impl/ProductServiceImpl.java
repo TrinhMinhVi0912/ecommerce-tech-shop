@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,6 +36,8 @@ import com.trinhminhvi.techshop.product.dto.request.CreateProductRequest;
 import com.trinhminhvi.techshop.product.dto.request.CreateVariantAttributeRequest;
 import com.trinhminhvi.techshop.product.dto.request.CreateVariantRequest;
 import com.trinhminhvi.techshop.product.dto.request.GetProductsRequest;
+import com.trinhminhvi.techshop.product.dto.request.UpdateProductRequest;
+import com.trinhminhvi.techshop.product.dto.request.UpdateVariantRequest;
 import com.trinhminhvi.techshop.product.dto.response.AttriubutesValueResponse;
 import com.trinhminhvi.techshop.product.dto.response.CompareItemResponse;
 import com.trinhminhvi.techshop.product.dto.response.CompareProductResponse;
@@ -272,8 +276,8 @@ public class ProductServiceImpl implements ProductService {
                         Path uploadPath = Paths.get(UPLOAD_DIR);
 
                         // System.out.println("Working dir : " + Paths.get("").toAbsolutePath());
-                        // System.out.println("Upload dir  : " + uploadPath.toAbsolutePath());
-                        // System.out.println("Exists      : " + Files.exists(uploadPath));
+                        // System.out.println("Upload dir : " + uploadPath.toAbsolutePath());
+                        // System.out.println("Exists : " + Files.exists(uploadPath));
 
                         if (!Files.exists(uploadPath)) {
                                 Files.createDirectories(uploadPath);
@@ -441,6 +445,455 @@ public class ProductServiceImpl implements ProductService {
                                 request.getVariants());
         }
 
+        // Helper dành cho update product
+        private void validateProductName(
+                        Integer productId,
+                        String productName) {
+
+                String trimmedName = productName.trim();
+
+                if (productRepository.existsByNameIgnoreCaseAndProductIdNot(
+                                trimmedName,
+                                productId)) {
+
+                        throw new RuntimeException("Product name already exists.");
+                }
+        }
+
+        private void validateBrandAndCategory(
+                        Integer brandId,
+                        Integer categoryId) {
+
+                if (!brandRepository.existsById(brandId)) {
+                        throw new RuntimeException("Brand not found.");
+                }
+
+                if (!categoryRepository.existsById(categoryId)) {
+                        throw new RuntimeException("Category not found.");
+                }
+        }
+
+        private void validateImages(
+                        List<String> existingImages,
+                        List<MultipartFile> newImages,
+                        String thumbnail) {
+
+                int oldImageCount = existingImages == null ? 0 : existingImages.size();
+                int newImageCount = newImages == null ? 0 : newImages.size();
+
+                int totalImages = oldImageCount + newImageCount;
+
+                if (totalImages < 2 || totalImages > 7) {
+                        throw new RuntimeException("Product must have from 2 to 7 images.");
+                }
+
+                if (newImages != null) {
+                        for (MultipartFile image : newImages) {
+
+                                if (image.isEmpty()) {
+                                        throw new RuntimeException("Image cannot be empty.");
+                                }
+
+                                String filename = image.getOriginalFilename();
+
+                                if (filename == null || !filename.contains(".")) {
+                                        throw new RuntimeException("Invalid image file.");
+                                }
+
+                                String extension = filename.substring(filename.lastIndexOf('.') + 1);
+
+                                if (!ImageExtension.isSupported(extension)) {
+                                        throw new RuntimeException("Only jpg, jpeg, png and webp images are allowed.");
+                                }
+                        }
+                }
+
+                if (thumbnail == null || thumbnail.isBlank()) {
+                        throw new RuntimeException("Thumbnail is required.");
+                }
+
+                boolean validThumbnail = false;
+
+                // thumbnail là ảnh cũ
+                if (existingImages != null && existingImages.contains(thumbnail)) {
+                        validThumbnail = true;
+                }
+
+                // thumbnail là ảnh mới (new_0, new_1,...)
+                if (!validThumbnail && thumbnail.startsWith("new_")) {
+
+                        try {
+                                int index = Integer.parseInt(thumbnail.substring(4));
+
+                                if (newImages != null && index >= 0 && index < newImages.size()) {
+                                        validThumbnail = true;
+                                }
+
+                        } catch (NumberFormatException ignored) {
+                        }
+                }
+
+                if (!validThumbnail) {
+                        throw new RuntimeException("Invalid thumbnail.");
+                }
+        }
+
+        private void validateVariant(
+                        UpdateVariantRequest variant) {
+
+                if (variant.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
+                        throw new RuntimeException("Variant price must be greater than zero.");
+                }
+
+                if (variant.getStock() < 0) {
+                        throw new RuntimeException("Variant stock cannot be negative.");
+                }
+        }
+
+        private void validateUpdateVariant(UpdateVariantRequest variant) {
+
+                if (variant.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
+                        throw new RuntimeException("Variant price must be greater than zero.");
+                }
+
+                if (variant.getStock() < 0) {
+                        throw new RuntimeException("Variant stock cannot be negative.");
+                }
+
+                validateVariantAttributes(variant.getAttributes());
+        }
+
+        private void validateUpdateVariants(
+                        List<UpdateVariantRequest> variants) {
+
+                if (variants == null || variants.isEmpty()) {
+                        throw new RuntimeException("Product must have at least one variant.");
+                }
+
+                Set<Integer> variantIds = new HashSet<>();
+
+                for (UpdateVariantRequest variant : variants) {
+
+                        validateVariant(variant);
+
+                        if (variant.getVariantId() != null
+                                        && !variantIds.add(variant.getVariantId())) {
+
+                                throw new RuntimeException("Duplicate variant id.");
+                        }
+                }
+        }
+
+        private void validateUpdateProduct(
+                        Integer productId,
+                        UpdateProductRequest request,
+                        List<MultipartFile> newImages) {
+
+                validateProductName(productId, request.getName());
+
+                validateBrandAndCategory(
+                                request.getBrandId(),
+                                request.getCategoryId());
+
+                validateImages(
+                                request.getExistingImages(),
+                                newImages,
+                                request.getThumbnail());
+
+                validateUpdateVariants(request.getVariants());
+        }
+
+        private void deleteImageFile(String imagePath) {
+
+                if (imagePath == null || imagePath.isBlank()) {
+                        return;
+                }
+
+                try {
+
+                        String fileName = Paths.get(imagePath).getFileName().toString();
+
+                        Path filePath = Paths.get(UPLOAD_DIR).resolve(fileName);
+
+                        Files.deleteIfExists(filePath);
+
+                } catch (IOException e) {
+                        throw new RuntimeException("Delete image file failed.", e);
+                }
+        }
+
+        // giống uploads ở trên create nhưng khác chổ xác định thumnail
+        private List<ProductImage> uploadNewImages(
+                        Product product,
+                        List<MultipartFile> images,
+                        List<Path> savedFiles) {
+
+                if (images == null || images.isEmpty()) {
+                        return new ArrayList<>();
+                }
+
+                try {
+
+                        Path uploadPath = Paths.get(UPLOAD_DIR);
+
+                        if (!Files.exists(uploadPath)) {
+                                Files.createDirectories(uploadPath);
+                        }
+
+                        List<ProductImage> productImages = new ArrayList<>();
+
+                        for (MultipartFile imageFile : images) {
+
+                                String originalFilename = StringUtils.cleanPath(imageFile.getOriginalFilename());
+
+                                String extension = originalFilename.substring(originalFilename.lastIndexOf('.'));
+
+                                String uuidFileName = UUID.randomUUID() + extension;
+
+                                Path filePath = uploadPath.resolve(uuidFileName);
+
+                                Files.copy(
+                                                imageFile.getInputStream(),
+                                                filePath,
+                                                StandardCopyOption.REPLACE_EXISTING);
+
+                                savedFiles.add(filePath);
+
+                                ProductImage productImage = ProductImage.builder()
+                                                .product(product)
+                                                .imagePath("/images/products/" + uuidFileName)
+                                                .isThumbnail(false)
+                                                .build();
+
+                                productImages.add(productImage);
+                        }
+
+                        return productImageRepository.saveAll(productImages);
+
+                } catch (IOException e) {
+                        throw new RuntimeException("Upload product images failed.", e);
+                }
+        }
+
+        // cập nhật thumbnail
+        private void updateThumbnail(
+                        List<ProductImage> allImages,
+                        List<ProductImage> uploadedImages,
+                        String thumbnail) {
+
+                // Reset tất cả
+                allImages.forEach(image -> image.setThumbnail(false));
+
+                // Thumbnail là ảnh mới
+                if (thumbnail.startsWith("new_")) {
+
+                        int index;
+
+                        try {
+                                index = Integer.parseInt(thumbnail.substring(4));
+                        } catch (NumberFormatException e) {
+                                throw new RuntimeException("Invalid thumbnail.");
+                        }
+
+                        if (index < 0 || index >= uploadedImages.size()) {
+                                throw new RuntimeException("Invalid thumbnail.");
+                        }
+
+                        uploadedImages.get(index).setThumbnail(true);
+                        return;
+                }
+
+                // Thumbnail là ảnh cũ
+                for (ProductImage image : allImages) {
+
+                        if (image.getImagePath().equals(thumbnail)) {
+                                image.setThumbnail(true);
+                                return;
+                        }
+                }
+
+                throw new RuntimeException("Thumbnail not found.");
+        }
+
+        // Đồng bộ ảnh với cơ sở dữ liệu
+        private List<ProductImage> syncProductImages(
+                        Product product,
+                        List<String> existingImages,
+                        List<MultipartFile> newImages,
+                        String thumbnail,
+                        List<Path> savedFiles) {
+
+                List<ProductImage> currentImages = productImageRepository.findAllByProduct(product);
+
+                List<ProductImage> remainingImages = new ArrayList<>();
+
+                // Giữ ảnh cũ, xóa ảnh không còn trong request
+                for (ProductImage image : currentImages) {
+
+                        if (existingImages != null
+                                        && existingImages.contains(image.getImagePath())) {
+
+                                image.setThumbnail(false);
+                                remainingImages.add(image);
+
+                        } else {
+
+                                deleteImageFile(image.getImagePath());
+
+                                productImageRepository.delete(image);
+                        }
+                }
+
+                /*
+                 * Upload ảnh mới
+                 */
+                List<ProductImage> uploadedImages = uploadNewImages(product, newImages, savedFiles);
+
+                remainingImages.addAll(uploadedImages);
+
+                /*
+                 * Cập nhật thumbnail
+                 */
+                updateThumbnail(
+                                remainingImages,
+                                uploadedImages,
+                                thumbnail);
+
+                return productImageRepository.saveAll(remainingImages);
+        }
+
+        private void deleteRemovedVariants(
+                        List<ProductVariant> currentVariants,
+                        Set<Integer> requestVariantIds) {
+
+                for (ProductVariant variant : currentVariants) {
+
+                        if (!requestVariantIds.contains(variant.getVariantId())) {
+
+                                variantAttributeRepository.deleteAllByVariant(variant);
+
+                                productVariantRepository.delete(variant);
+                        }
+                }
+        }
+
+        private void rebuildVariantAttributes(
+                        ProductVariant variant,
+                        List<CreateVariantAttributeRequest> requests) {
+
+                variantAttributeRepository.deleteAllByVariant(variant);
+
+                List<VariantAttribute> variantAttributes = new ArrayList<>();
+
+                for (CreateVariantAttributeRequest request : requests) {
+
+                        AttributeValue attributeValue = getOrCreateAttributeValue(request);
+
+                        VariantAttribute variantAttribute = VariantAttribute.builder()
+                                        .id(VariantAttributeId.builder()
+                                                        .variantId(variant.getVariantId())
+                                                        .attrValueId(attributeValue.getAttrValueId())
+                                                        .build())
+                                        .variant(variant)
+                                        .attrValue(attributeValue)
+                                        .build();
+
+                        variantAttributes.add(variantAttribute);
+                }
+
+                variantAttributeRepository.saveAll(variantAttributes);
+
+                variant.setVariantAttributes(variantAttributes);
+        }
+
+        private ProductVariant updateVariant(
+                        ProductVariant variant,
+                        UpdateVariantRequest request) {
+
+                variant.setPrice(request.getPrice());
+                variant.setStock(request.getStock());
+                variant.setSku(generateSkuIfNeeded(request.getSku()));
+
+                ProductVariant savedVariant = productVariantRepository.save(variant);
+
+                rebuildVariantAttributes(
+                                savedVariant,
+                                request.getAttributes());
+
+                return savedVariant;
+        }
+
+        private ProductVariant createVariant(
+                        Product product,
+                        UpdateVariantRequest request) {
+
+                ProductVariant variant = ProductVariant.builder()
+                                .product(product)
+                                .price(request.getPrice())
+                                .stock(request.getStock())
+                                .sku(generateSkuIfNeeded(request.getSku()))
+                                .build();
+
+                ProductVariant savedVariant = productVariantRepository.save(variant);
+
+                rebuildVariantAttributes(
+                                savedVariant,
+                                request.getAttributes());
+
+                return savedVariant;
+        }
+
+        // Đồng bộ variant với DB
+        private List<ProductVariant> syncVariants(
+                        Product product,
+                        List<UpdateVariantRequest> requests) {
+
+                List<ProductVariant> currentVariants = productVariantRepository
+                                .findAllByProductWithVariantAttributes(product);
+
+                Map<Integer, ProductVariant> currentVariantMap = currentVariants.stream()
+                                .collect(Collectors.toMap(
+                                                ProductVariant::getVariantId,
+                                                Function.identity()));
+
+                List<ProductVariant> result = new ArrayList<>();
+
+                Set<Integer> requestVariantIds = new HashSet<>();
+
+                for (UpdateVariantRequest request : requests) {
+
+                        // Update
+                        if (request.getVariantId() != null) {
+
+                                ProductVariant variant = currentVariantMap.get(request.getVariantId());
+
+                                if (variant == null) {
+                                        throw new RuntimeException("Variant not found.");
+                                }
+
+                                updateVariant(variant, request);
+
+                                result.add(variant);
+
+                                requestVariantIds.add(variant.getVariantId());
+
+                        }
+                        // Create
+                        else {
+
+                                ProductVariant variant = createVariant(product, request);
+
+                                result.add(variant);
+                        }
+                }
+
+                deleteRemovedVariants(
+                                currentVariants,
+                                requestVariantIds);
+
+                return result;
+        }
+
         @Override
         public PageableResponse<List<ProductResponse>> getAllProduct(Pageable pageable,
                         GetProductsRequest getAllProductRequest) {
@@ -581,6 +1034,63 @@ public class ProductServiceImpl implements ProductService {
                 } catch (Exception ex) {
 
                         cleanupUploadedFiles(savedFiles);
+                        throw ex;
+                }
+        }
+
+        @Override
+        @Transactional
+        public ProductDetailResponse updateProduct(
+                        Integer productId,
+                        UpdateProductRequest request,
+                        List<MultipartFile> newImages) {
+
+                List<Path> savedFiles = new ArrayList<>();
+
+                try {
+
+                        validateUpdateProduct(
+                                        productId,
+                                        request,
+                                        newImages);
+
+                        Product product = productRepository.findById(productId)
+                                        .orElseThrow(() -> new RuntimeException("Product not found."));
+
+                        Brand brand = brandRepository.findById(request.getBrandId())
+                                        .orElseThrow(() -> new RuntimeException("Brand not found."));
+
+                        Category category = categoryRepository.findById(request.getCategoryId())
+                                        .orElseThrow(() -> new RuntimeException("Category not found."));
+
+                        productMapper.updateProductFromRequest(request, product);
+
+                        product.setName(request.getName().trim());
+                        product.setBrand(brand);
+                        product.setCategory(category);
+
+                        productRepository.save(product);
+
+                        syncProductImages(
+                                        product,
+                                        request.getExistingImages(),
+                                        newImages,
+                                        request.getThumbnail(),
+                                        savedFiles);
+
+                        syncVariants(
+                                        product,
+                                        request.getVariants());
+
+                        entityManager.flush();
+                        entityManager.clear();
+
+                        return getProductById(productId);
+
+                } catch (Exception ex) {
+
+                        cleanupUploadedFiles(savedFiles);
+
                         throw ex;
                 }
         }

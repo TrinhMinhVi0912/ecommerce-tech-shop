@@ -44,11 +44,20 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
             @Param("categoryId") Integer categoryId,
             Pageable pageable);
 
-
     boolean existsByCategoryCategoryId(Integer categoryId);
 
     boolean existsByBrandBrandId(Integer brandId);
 
     @Query("SELECT COUNT(p) > 0 FROM Product p WHERE LOWER(TRIM(p.name)) = LOWER(TRIM(:name))")
     boolean existsByNameIgnoreCaseTrim(@Param("name") String name);
+
+    @Query("""
+            SELECT COUNT(p) > 0
+            FROM Product p
+            WHERE LOWER(TRIM(p.name)) = LOWER(TRIM(:name))
+            AND p.productId <> :productId
+            """)
+    boolean existsByNameIgnoreCaseAndProductIdNot(
+            String name,
+            Integer productId);
 }

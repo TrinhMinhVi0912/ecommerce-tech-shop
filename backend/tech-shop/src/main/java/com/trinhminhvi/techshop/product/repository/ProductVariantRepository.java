@@ -20,4 +20,12 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
                 WHERE pv.product = :product
             """)
     List<ProductVariant> findAllByProductWithAttributes(Product product);
+
+    @Query("""
+                SELECT DISTINCT pv
+                FROM ProductVariant pv
+                LEFT JOIN FETCH pv.variantAttributes
+                WHERE pv.product = :product
+            """)
+    List<ProductVariant> findAllByProductWithVariantAttributes(Product product);
 }

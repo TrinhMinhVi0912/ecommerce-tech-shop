@@ -18,6 +18,7 @@ import com.trinhminhvi.techshop.common.ApiResponse;
 import com.trinhminhvi.techshop.common.PageableResponse;
 import com.trinhminhvi.techshop.product.dto.request.CreateProductRequest;
 import com.trinhminhvi.techshop.product.dto.request.GetProductsRequest;
+import com.trinhminhvi.techshop.product.dto.request.UpdateProductRequest;
 import com.trinhminhvi.techshop.product.dto.response.CompareProductResponse;
 import com.trinhminhvi.techshop.product.dto.response.ProductDetailResponse;
 import com.trinhminhvi.techshop.product.dto.response.ProductResponse;
@@ -27,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
 @RequestMapping("/products")
@@ -97,11 +99,38 @@ public class ProductController {
 
     // @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     // public ApiResponse<ProductDetailResponse> createProduct(
-    //         @RequestPart("product") @Validated CreateProductRequest request,
-    //         @RequestPart("images") List<MultipartFile> images) {
+    // @RequestPart("product") @Validated CreateProductRequest request,
+    // @RequestPart("images") List<MultipartFile> images) {
+
+    // return ApiResponse.success(
+    // productService.createProduct(request, images),
+    // "Create Product Successfully");
+    // }
+
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<ProductDetailResponse> updateProduct(
+            @PathVariable Integer id,
+            @RequestPart("product") String productJson,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images)
+            throws Exception {
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        UpdateProductRequest request = objectMapper.readValue(productJson, UpdateProductRequest.class);
+
+        return ApiResponse.success(
+                productService.updateProduct(id, request, images),
+                "Update Product Successfully");
+    }
+
+    // @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    // public ApiResponse<ProductDetailResponse> updateProduct(
+    //         @PathVariable Integer id,
+    //         @RequestPart("product") @Validated UpdateProductRequest request,
+    //         @RequestPart(value = "images", required = false) List<MultipartFile> images) {
 
     //     return ApiResponse.success(
-    //             productService.createProduct(request, images),
-    //             "Create Product Successfully");
+    //             productService.updateProduct(id, request, images),
+    //             "Update Product Successfully");
     // }
 }
