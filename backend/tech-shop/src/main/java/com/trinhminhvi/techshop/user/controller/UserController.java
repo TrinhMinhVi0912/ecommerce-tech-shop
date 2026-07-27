@@ -1,7 +1,9 @@
 package com.trinhminhvi.techshop.user.controller;
 
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.trinhminhvi.techshop.common.ApiResponse;
 import com.trinhminhvi.techshop.security.JwtService;
@@ -11,16 +13,18 @@ import com.trinhminhvi.techshop.user.dto.request.UpdateProfileUserRequest;
 import com.trinhminhvi.techshop.user.dto.response.AddAddressResponse;
 import com.trinhminhvi.techshop.user.dto.response.UpdateProfileResponse;
 import com.trinhminhvi.techshop.user.dto.response.UserProfileResponse;
+import com.trinhminhvi.techshop.user.dto.response.UserResponse;
 import com.trinhminhvi.techshop.user.service.AddressService;
 import com.trinhminhvi.techshop.user.service.UserService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -32,7 +36,6 @@ public class UserController {
 
         private final UserService userService;
         private final JwtService jwtService;
-        private final AddressService addressService;
 
         @PostMapping("/change-profile")
         public ApiResponse<UpdateProfileResponse> updateProfile(
@@ -76,6 +79,20 @@ public class UserController {
                                 .message("Get profile successfully")
                                 .data(userService.getProfile(userId))
                                 .build();
+        }
+
+        @PatchMapping(value = "/me/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+        public ApiResponse<UserResponse> uploadAvatar(
+                        HttpServletRequest request,
+                        @RequestPart("avatar") MultipartFile avatar) {
+
+                String token = jwtService.extractToken(request);
+
+                String userId = jwtService.extractUserIdFromToken(token);
+
+                return ApiResponse.success(
+                                userService.uploadAvatar(userId, avatar),
+                                "Upload avatar successfully");
         }
 
 }

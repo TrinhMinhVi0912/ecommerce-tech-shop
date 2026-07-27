@@ -1,13 +1,23 @@
 package com.trinhminhvi.techshop.user.service.impl;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.UUID;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.trinhminhvi.techshop.common.ImageExtension;
 import com.trinhminhvi.techshop.user.dto.request.ChangePasswordRequest;
 import com.trinhminhvi.techshop.user.dto.request.UpdateProfileUserRequest;
 import com.trinhminhvi.techshop.user.dto.response.UpdateProfileResponse;
 import com.trinhminhvi.techshop.user.dto.response.UserProfileResponse;
+import com.trinhminhvi.techshop.user.dto.response.UserResponse;
 import com.trinhminhvi.techshop.user.entity.User;
 import com.trinhminhvi.techshop.user.mapper.UserMapper;
 import com.trinhminhvi.techshop.user.repository.UserRepository;
@@ -21,6 +31,66 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
 
     private final PasswordEncoder passwordEncoder;
+
+    private static final String UPLOAD_DIR = "backend/tech-shop/src/main/resources/static/images/avatars";
+
+    // Helper dành cho uploads avatar
+
+    private void validateAvatar(MultipartFile avatar) {
+
+        if (avatar == null || avatar.isEmpty()) {
+            throw new RuntimeException("Avatar cannot be empty.");
+        }
+
+        String filename = avatar.getOriginalFilename();
+
+        if (filename == null || !filename.contains(".")) {
+            throw new RuntimeException("Invalid avatar file.");
+        }
+
+        String extension = filename.substring(filename.lastIndexOf('.') + 1);
+
+        if (!ImageExtension.isSupported(extension)) {
+            throw new RuntimeException(
+                    "Only jpg, jpeg, png and webp images are allowed.");
+        }
+
+        long maxSize = 5 * 1024 * 1024L; // 5MB
+
+        if (avatar.getSize() > maxSize) {
+            throw new RuntimeException("Avatar size must not exceed 5MB.");
+        }
+    }
+
+    private String saveAvatar(MultipartFile avatar) {
+
+        try {
+            String originalFilename = avatar.getOriginalFilename();
+
+            String extension = originalFilename.substring(
+                    originalFilename.lastIndexOf('.') + 1);
+
+            String newFileName = UUID.randomUUID() + "." + extension;
+
+            Path uploadPath = Paths.get(UPLOAD_DIR);
+
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            Path filePath = uploadPath.resolve(newFileName);
+
+            Files.copy(
+                    avatar.getInputStream(),
+                    filePath,
+                    StandardCopyOption.REPLACE_EXISTING);
+
+            return "/images/avatars/" + newFileName;
+
+        } catch (IOException e) {
+            throw new RuntimeException("Upload avatar failed.", e);
+        }
+    }
 
     @Transactional
     @Override
@@ -56,6 +126,34 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(changePasswordRequest.getNewPassword()));
     }
 
+    private UserResponse buildUserResponse(User user) {
+        return UserResponse.builder()
+                .userId(user.getUserId())
+                .fullName(user.getFullName())
+                .avatarUrl(user.getAvatarPath())
+                .build();
+    }
+
+    private void deleteOldAvatar(User user) {
+        String oldAvatarPath = user.getAvatarPath();
+
+        if (oldAvatarPath == null || oldAvatarPath.isBlank()) {
+            return;
+        }
+
+        try {
+            // avatarPath dạng "/images/avatars/xxx.png" -> chỉ lấy tên file
+            String fileName = oldAvatarPath.substring(oldAvatarPath.lastIndexOf('/') + 1);
+
+            Path oldFilePath = Paths.get(UPLOAD_DIR).resolve(fileName);
+
+            Files.deleteIfExists(oldFilePath);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error in delete old file process");
+        }
+    }
+
     @Override
     @Transactional(readOnly = true)
     public UserProfileResponse getProfile(String userId) {
@@ -64,6 +162,28 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         return userMapper.toUserProfileResponse(user);
+    }
+
+    @Override
+    @Transactional
+    public UserResponse uploadAvatar(
+            String userId,
+            MultipartFile avatar) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found."));
+
+        validateAvatar(avatar);
+
+        String avatarPath = saveAvatar(avatar);
+
+        deleteOldAvatar(user);
+
+        user.setAvatarPath(avatarPath);
+
+        User savedUser = userRepository.save(user);
+
+        return buildUserResponse(savedUser);
     }
 
 }

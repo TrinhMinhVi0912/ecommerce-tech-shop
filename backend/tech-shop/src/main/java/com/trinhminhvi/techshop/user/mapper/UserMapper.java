@@ -8,6 +8,7 @@ import com.trinhminhvi.techshop.auth.dto.response.RegisterResponse;
 import com.trinhminhvi.techshop.user.dto.response.AddressResponse;
 import com.trinhminhvi.techshop.user.dto.response.UpdateProfileResponse;
 import com.trinhminhvi.techshop.user.dto.response.UserProfileResponse;
+import com.trinhminhvi.techshop.user.dto.response.UserResponse;
 import com.trinhminhvi.techshop.user.entity.Address;
 import com.trinhminhvi.techshop.user.entity.User;
 
@@ -25,5 +26,8 @@ public interface UserMapper {
     UserProfileResponse toUserProfileResponse(User user);
 
     AddressResponse toAddressResponse(Address address);
+
+    @Mapping(target = "avatarUrl", source = "avatarPath")
+    UserResponse toUserResponse(User user);
 
 }
