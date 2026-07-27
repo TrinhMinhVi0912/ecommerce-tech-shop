@@ -29,6 +29,8 @@ public class CouponResponse {
 
     private Integer quantity;
 
+    private Long totalUsage;
+
     private Boolean active;
 
     private LocalDateTime startDate;

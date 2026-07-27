@@ -1,4 +1,4 @@
-package com.trinhminhvi.techshop.order.dto.request;
+package com.trinhminhvi.techshop.order.dto.response;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

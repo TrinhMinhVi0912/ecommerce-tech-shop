@@ -18,11 +18,13 @@ import org.springframework.web.bind.annotation.RestController;
 import com.trinhminhvi.techshop.common.ApiResponse;
 import com.trinhminhvi.techshop.common.PageableResponse;
 import com.trinhminhvi.techshop.coupon.dto.request.CreateCouponRequest;
+import com.trinhminhvi.techshop.coupon.dto.request.GetCouponUsageRequest;
 import com.trinhminhvi.techshop.coupon.dto.request.GetCouponsRequest;
 import com.trinhminhvi.techshop.coupon.dto.request.UpdateCouponRequest;
 import com.trinhminhvi.techshop.coupon.dto.request.UpdateCouponStatusRequest;
 import com.trinhminhvi.techshop.coupon.dto.response.CouponDetailResponse;
 import com.trinhminhvi.techshop.coupon.dto.response.CouponResponse;
+import com.trinhminhvi.techshop.coupon.dto.response.CouponUsageResponse;
 import com.trinhminhvi.techshop.coupon.dto.response.CreateCouponResponse;
 import com.trinhminhvi.techshop.coupon.service.CouponService;
 
@@ -90,6 +92,26 @@ public class CouponController {
         return ApiResponse.success(
                 couponService.updateCouponStatus(id, request),
                 "Update Coupon Status Successfully");
+    }
+
+    @GetMapping("/{id}/usages")
+    public ApiResponse<PageableResponse<List<CouponUsageResponse>>> getCouponUsages(
+            @PathVariable Integer id,
+            GetCouponUsageRequest request) {
+
+        Sort sort = request.getSortDir().equalsIgnoreCase("ASC")
+                ? Sort.by(request.getSortBy()).ascending()
+                : Sort.by(request.getSortBy()).descending();
+
+        return ApiResponse.success(
+                couponService.getCouponUsages(
+                        id,
+                        PageRequest.of(
+                                request.getPageNum() - 1,
+                                request.getPageSize(),
+                                sort),
+                        request),
+                "Get Coupon Usages Successfully");
     }
 
 }

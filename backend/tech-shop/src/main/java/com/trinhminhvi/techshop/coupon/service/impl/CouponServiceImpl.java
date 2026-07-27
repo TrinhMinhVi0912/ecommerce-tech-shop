@@ -11,16 +11,20 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.trinhminhvi.techshop.common.PageableResponse;
 import com.trinhminhvi.techshop.coupon.dto.request.CreateCouponRequest;
+import com.trinhminhvi.techshop.coupon.dto.request.GetCouponUsageRequest;
 import com.trinhminhvi.techshop.coupon.dto.request.GetCouponsRequest;
 import com.trinhminhvi.techshop.coupon.dto.request.UpdateCouponRequest;
 import com.trinhminhvi.techshop.coupon.dto.request.UpdateCouponStatusRequest;
 import com.trinhminhvi.techshop.coupon.dto.response.CouponDetailResponse;
 import com.trinhminhvi.techshop.coupon.dto.response.CouponResponse;
+import com.trinhminhvi.techshop.coupon.dto.response.CouponUsageResponse;
 import com.trinhminhvi.techshop.coupon.dto.response.CreateCouponResponse;
 import com.trinhminhvi.techshop.coupon.entity.Coupon;
+import com.trinhminhvi.techshop.coupon.entity.CouponUsage;
 import com.trinhminhvi.techshop.coupon.enums.DiscountType;
 import com.trinhminhvi.techshop.coupon.mapper.CouponMapper;
 import com.trinhminhvi.techshop.coupon.repository.CouponRepository;
+import com.trinhminhvi.techshop.coupon.repository.CouponUsageRepository;
 import com.trinhminhvi.techshop.coupon.service.CouponService;
 
 import lombok.RequiredArgsConstructor;
@@ -30,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 public class CouponServiceImpl implements CouponService {
 
     private final CouponRepository couponRepository;
+    private final CouponUsageRepository couponUsageRepository;
     private final CouponMapper couponMapper;
 
     // Helper dành cho tạo coupon chủ yếu là validation
@@ -254,7 +259,15 @@ public class CouponServiceImpl implements CouponService {
 
         List<CouponResponse> responses = pageCoupons.getContent()
                 .stream()
-                .map(couponMapper::toCouponResponse)
+                .map(coupon -> {
+
+                    CouponResponse response = couponMapper.toCouponResponse(coupon);
+
+                    response.setTotalUsage(
+                            couponUsageRepository.countUsage(coupon.getCouponId()));
+
+                    return response;
+                })
                 .toList();
 
         return PageableResponse.<List<CouponResponse>>builder()
@@ -282,6 +295,42 @@ public class CouponServiceImpl implements CouponService {
         Coupon savedCoupon = couponRepository.save(coupon);
 
         return couponMapper.toCouponDetailResponse(savedCoupon);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageableResponse<List<CouponUsageResponse>> getCouponUsages(
+            Integer couponId,
+            Pageable pageable,
+            GetCouponUsageRequest request) {
+
+        if (!couponRepository.existsById(couponId)) {
+            throw new RuntimeException("Coupon not found.");
+        }
+
+        Page<CouponUsage> pageCouponUsage = couponUsageRepository.findCouponUsages(
+                couponId,
+                request.getSearch(),
+                pageable);
+
+        List<CouponUsageResponse> responses = pageCouponUsage.getContent()
+                .stream()
+                .map(usage -> CouponUsageResponse.builder()
+                        .usageId(usage.getUsageId())
+                        .userId(usage.getUser().getUserId())
+                        .username(usage.getUser().getUserName()) // sửa ở đây
+                        .email(usage.getUser().getEmail())
+                        .usedAt(usage.getUsedAt())
+                        .build())
+                .toList();
+
+        return PageableResponse.<List<CouponUsageResponse>>builder()
+                .pageNum(request.getPageNum())
+                .pageSize(request.getPageSize())
+                .totalElements(pageCouponUsage.getTotalElements())
+                .totalPages(pageCouponUsage.getTotalPages())
+                .items(responses)
+                .build();
     }
 
 }

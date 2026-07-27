@@ -23,6 +23,8 @@ public interface CouponMapper {
 
     CouponResponse toCouponResponse(Coupon coupon);
 
+    
+
     void updateCouponFromRequest(
             UpdateCouponRequest request,
             @MappingTarget Coupon coupon);
