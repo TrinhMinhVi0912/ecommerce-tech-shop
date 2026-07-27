@@ -18,6 +18,11 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
             FROM Product p
             LEFT JOIN p.productImages pi
             WHERE
+
+                (:isActive IS NULL
+                    OR p.isActive = :isActive)
+
+            AND
                 (:search IS NULL
                     OR LOWER(p.name)
                     LIKE LOWER(CONCAT('%', :search, '%')))
@@ -42,6 +47,7 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
             @Param("maxPrice") BigDecimal maxPrice,
             @Param("brandId") Integer brandId,
             @Param("categoryId") Integer categoryId,
+            @Param("isActive") Boolean isActive,
             Pageable pageable);
 
     boolean existsByCategoryCategoryId(Integer categoryId);

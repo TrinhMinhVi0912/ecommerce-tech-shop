@@ -37,11 +37,14 @@ import com.trinhminhvi.techshop.product.dto.request.CreateVariantAttributeReques
 import com.trinhminhvi.techshop.product.dto.request.CreateVariantRequest;
 import com.trinhminhvi.techshop.product.dto.request.GetProductsRequest;
 import com.trinhminhvi.techshop.product.dto.request.UpdateProductRequest;
+import com.trinhminhvi.techshop.product.dto.request.UpdateProductStatusRequest;
 import com.trinhminhvi.techshop.product.dto.request.UpdateVariantRequest;
 import com.trinhminhvi.techshop.product.dto.response.AttriubutesValueResponse;
 import com.trinhminhvi.techshop.product.dto.response.CompareItemResponse;
 import com.trinhminhvi.techshop.product.dto.response.CompareProductResponse;
+import com.trinhminhvi.techshop.product.dto.response.ProductDetailForAdminResponse;
 import com.trinhminhvi.techshop.product.dto.response.ProductDetailResponse;
+import com.trinhminhvi.techshop.product.dto.response.ProductForAdminResponse;
 import com.trinhminhvi.techshop.product.dto.response.ProductImageResponse;
 import com.trinhminhvi.techshop.product.dto.response.ProductResponse;
 import com.trinhminhvi.techshop.product.dto.response.ProductVariantResponse;
@@ -894,8 +897,65 @@ public class ProductServiceImpl implements ProductService {
                 return result;
         }
 
+        // Helper dành cho GET product admin & user
+
+        private List<ProductVariantResponse> buildVariantResponses(
+                        List<ProductVariant> variants) {
+
+                return variants.stream()
+                                .map(variant -> {
+
+                                        ProductVariantResponse response = productVariantMapper
+                                                        .toProductVariantResponse(variant);
+
+                                        response.setAttributes(
+                                                        variant.getVariantAttributes()
+                                                                        .stream()
+                                                                        .map(attribute -> AttriubutesValueResponse
+                                                                                        .builder()
+                                                                                        .name(attribute.getAttrValue()
+                                                                                                        .getAttribute()
+                                                                                                        .getName())
+                                                                                        .value(attribute.getAttrValue()
+                                                                                                        .getValue())
+                                                                                        .build())
+                                                                        .toList());
+
+                                        return response;
+                                })
+                                .toList();
+        }
+
+        private List<ProductImageResponse> buildImageResponses(
+                        List<ProductImage> images) {
+
+                return images.stream()
+                                .map(image -> ProductImageResponse.builder()
+                                                .imagePath(image.getImagePath())
+                                                .isThumbnail(image.isThumbnail())
+                                                .build())
+                                .toList();
+        }
+
+        private ProductDetailResponse buildProductDetailResponse(
+                        Product product,
+                        List<ProductVariant> variants,
+                        List<ProductImage> images) {
+
+                return ProductDetailResponse.builder()
+                                .productId(product.getProductId())
+                                .basePrice(product.getBasePrice())
+                                .name(product.getName())
+                                .description(product.getDescription())
+                                .brandResponse(brandMapper.toBrandResponse(product.getBrand()))
+                                .categoryResponse(categoryMapper.toCategoryResponse(product.getCategory()))
+                                .images(buildImageResponses(images))
+                                .variants(buildVariantResponses(variants))
+                                .build();
+        }
+
         @Override
-        public PageableResponse<List<ProductResponse>> getAllProduct(Pageable pageable,
+        public PageableResponse<List<ProductResponse>> getAllProductForCustomer(Pageable pageable,
                         GetProductsRequest getAllProductRequest) {
                 Page<Product> pageProducts = productRepository.searchProduct(
                                 getAllProductRequest.getSearch(),
@@ -903,6 +963,7 @@ public class ProductServiceImpl implements ProductService {
                                 getAllProductRequest.getMaxPrice(),
                                 getAllProductRequest.getBrandId(),
                                 getAllProductRequest.getCategoryId(),
+                                true,
                                 pageable);
 
                 List<ProductResponse> listProductResponse = pageProducts.getContent().stream()
@@ -923,57 +984,79 @@ public class ProductServiceImpl implements ProductService {
         }
 
         @Override
-        public ProductDetailResponse getProductById(Integer id) {
-                Product product = productRepository.findById(id).orElseThrow(
-                                () -> new RuntimeException("Product Not Found"));
+        public PageableResponse<List<ProductForAdminResponse>> getAllProductsForAdmin(
+                        Pageable pageable,
+                        GetProductsRequest request) {
 
-                List<ProductVariant> listVariantAndAtributes = productVariantRepository
-                                .findAllByProductWithAttributes(product);
-                // System.out.println("================================");
-                // System.out.println("List Variant And Atributes");
-                // for (ProductVariant variant : listVariantAndAtributes) {
-                // System.out.println(variant.getVariantId());
-                // System.out.println(variant.getVariantAttributes());
-                // }
-                // System.out.println("=====================================");
+                Page<Product> pageProducts = productRepository.searchProduct(
+                                request.getSearch(),
+                                request.getMinPrice(),
+                                request.getMaxPrice(),
+                                request.getBrandId(),
+                                request.getCategoryId(),
+                                request.getIsActive(),
+                                pageable);
 
-                List<ProductImage> listProductImages = productImageRepository.findAllByProduct(product);
+                List<ProductForAdminResponse> listProductForAdminResponse = pageProducts.getContent()
+                                .stream()
+                                .map(product -> {
+                                        ProductForAdminResponse productResponse = productMapper.toProductForAdminResponse(product);
+                                        productResponse.setIsActive(product.getIsActive());
+                                        productResponse.setThumbnailImagePath(
+                                                        product.getThumbnailPath());
 
-                return ProductDetailResponse.builder()
-                                .productId(product.getProductId())
-                                .basePrice(product.getBasePrice())
-                                .name(product.getName())
-                                .description(product.getDescription())
-                                .brandResponse(brandMapper.toBrandResponse(product.getBrand()))
-                                .categoryResponse(categoryMapper.toCategoryResponse(product.getCategory()))
+                                        return productResponse;
+                                })
+                                .toList();
 
-                                .images(listProductImages.stream().map(p -> {
-                                        return ProductImageResponse.builder()
-                                                        .imagePath(p.getImagePath())
-                                                        .isThumbnail(p.isThumbnail())
-                                                        .build();
-                                }).toList())
-
-                                .variants(listVariantAndAtributes.stream().map(p -> {
-                                        ProductVariantResponse productVariantResponse = productVariantMapper
-                                                        .toProductVariantResponse(p);
-                                        productVariantResponse.setAttributes(
-                                                        p.getVariantAttributes().stream().map(
-                                                                        va -> {
-                                                                                AttriubutesValueResponse attriubutesValueResponse = AttriubutesValueResponse
-                                                                                                .builder()
-                                                                                                .name(va.getAttrValue()
-                                                                                                                .getAttribute()
-                                                                                                                .getName())
-                                                                                                .value(va.getAttrValue()
-                                                                                                                .getValue())
-                                                                                                .build();
-                                                                                return attriubutesValueResponse;
-                                                                        }).toList());
-                                        return productVariantResponse;
-                                }).toList()) //
-
+                return PageableResponse.<List<ProductForAdminResponse>>builder()
+                                .pageNum(request.getPageNum())
+                                .pageSize(request.getPageSize())
+                                .totalElements(pageProducts.getTotalElements())
+                                .totalPages(pageProducts.getTotalPages())
+                                .items(listProductForAdminResponse)
                                 .build();
+        }
+
+        @Override
+        public ProductDetailResponse getProductByIdForCustomer(Integer id) {
+
+                Product product = productRepository.findById(id)
+                                .orElseThrow(() -> new RuntimeException("Product Not Found"));
+
+                if (!product.getIsActive()) {
+                        throw new RuntimeException("Product not found.");
+                }
+
+                List<ProductVariant> variants = productVariantRepository.findAllByProductWithAttributes(product);
+
+                List<ProductImage> images = productImageRepository.findAllByProduct(product);
+
+                return buildProductDetailResponse(
+                                product,
+                                variants,
+                                images);
+        }
+
+        @Override
+        public ProductDetailForAdminResponse getProductByIdForAdmin(Integer id) {
+
+                Product product = productRepository.findById(id)
+                                .orElseThrow(() -> new RuntimeException("Product Not Found"));
+
+                List<ProductVariant> variants = productVariantRepository.findAllByProductWithAttributes(product);
+
+                List<ProductImage> images = productImageRepository.findAllByProduct(product);
+
+                ProductDetailResponse productDetailResponse =  buildProductDetailResponse(
+                                product,
+                                variants,
+                                images);
+                return ProductDetailForAdminResponse.builder()
+                .productDetailResponse(productDetailResponse)
+                .isActive(product.getIsActive())
+                .build();
+                
         }
 
         @Override
@@ -1007,7 +1090,7 @@ public class ProductServiceImpl implements ProductService {
 
         @Override
         @Transactional(rollbackFor = Exception.class)
-        public ProductDetailResponse createProduct(CreateProductRequest request, List<MultipartFile> images) {
+        public ProductDetailForAdminResponse createProduct(CreateProductRequest request, List<MultipartFile> images) {
 
                 List<Path> savedFiles = new ArrayList<>();
 
@@ -1029,7 +1112,7 @@ public class ProductServiceImpl implements ProductService {
                         entityManager.flush();
                         entityManager.clear();
 
-                        return getProductById(product.getProductId());
+                        return getProductByIdForAdmin(product.getProductId());
 
                 } catch (Exception ex) {
 
@@ -1040,7 +1123,7 @@ public class ProductServiceImpl implements ProductService {
 
         @Override
         @Transactional
-        public ProductDetailResponse updateProduct(
+        public ProductDetailForAdminResponse updateProduct(
                         Integer productId,
                         UpdateProductRequest request,
                         List<MultipartFile> newImages) {
@@ -1085,7 +1168,7 @@ public class ProductServiceImpl implements ProductService {
                         entityManager.flush();
                         entityManager.clear();
 
-                        return getProductById(productId);
+                        return getProductByIdForAdmin(productId);
 
                 } catch (Exception ex) {
 
@@ -1093,6 +1176,25 @@ public class ProductServiceImpl implements ProductService {
 
                         throw ex;
                 }
+        }
+
+        @Override
+        @Transactional
+        public ProductDetailForAdminResponse updateProductStatus(
+                        Integer productId,
+                        UpdateProductStatusRequest request) {
+
+                Product product = productRepository.findById(productId)
+                                .orElseThrow(() -> new RuntimeException("Product not found."));
+
+                product.setIsActive(request.getIsActive());
+
+                productRepository.save(product);
+
+                entityManager.flush();
+                entityManager.clear();
+
+                return getProductByIdForAdmin(productId);
         }
 
 }

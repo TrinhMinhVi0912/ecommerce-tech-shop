@@ -13,11 +13,11 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductResponse {
+public class ProductForAdminResponse {
     private Integer productId;
     private String name;
     private BigDecimal basePrice;
-    
+    private Boolean isActive;
     @Builder.Default
     private String thumbnailImagePath = "/images/products/default.jpg";
 }
