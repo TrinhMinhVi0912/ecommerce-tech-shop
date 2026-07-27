@@ -1,10 +1,10 @@
-package com.trinhminhvi.techshop.order.entity;
+package com.trinhminhvi.techshop.coupon.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.trinhminhvi.techshop.order.enums.DiscountType;
+import com.trinhminhvi.techshop.coupon.enums.DiscountType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -35,6 +35,9 @@ public class Coupon {
     @Column(name = "coupon_id")
     private Integer couponId;
 
+    @Column(name = "name",nullable = false)
+    private String name;
+
     @Column(nullable = false, unique = true)
     private String code;
 
@@ -60,9 +63,16 @@ public class Coupon {
     @Column(name = "expire_date")
     private LocalDateTime expireDate;
 
-    private boolean active;
+    @Column(name = "active", nullable = false)
+    private Boolean active;
 
     private String description;
+
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "coupon")
     private List<CouponUsage> couponUsages;

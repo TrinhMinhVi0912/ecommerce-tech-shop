@@ -15,13 +15,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
-
 import com.trinhminhvi.techshop.cart.entity.Cart;
 import com.trinhminhvi.techshop.cart.entity.CartItem;
 import com.trinhminhvi.techshop.cart.repository.CartItemRepository;
 import com.trinhminhvi.techshop.cart.repository.CartRepository;
 import com.trinhminhvi.techshop.common.PageableResponse;
+import com.trinhminhvi.techshop.coupon.entity.Coupon;
+import com.trinhminhvi.techshop.coupon.entity.CouponUsage;
+import com.trinhminhvi.techshop.coupon.enums.DiscountType;
+import com.trinhminhvi.techshop.coupon.repository.CouponRepository;
+import com.trinhminhvi.techshop.coupon.repository.CouponUsageRepository;
 import com.trinhminhvi.techshop.order.dto.internal.CheckoutAddress;
 import com.trinhminhvi.techshop.order.dto.internal.PriceSummary;
 import com.trinhminhvi.techshop.order.dto.request.CheckoutRequest;
@@ -32,17 +35,12 @@ import com.trinhminhvi.techshop.order.dto.response.CheckoutResponse;
 import com.trinhminhvi.techshop.order.dto.response.OrderDetailResponse;
 import com.trinhminhvi.techshop.order.dto.response.OrderItemDetailResponse;
 import com.trinhminhvi.techshop.order.dto.response.VariantAttributeResponse;
-import com.trinhminhvi.techshop.order.entity.Coupon;
-import com.trinhminhvi.techshop.order.entity.CouponUsage;
 import com.trinhminhvi.techshop.order.entity.Order;
 import com.trinhminhvi.techshop.order.entity.OrderItem;
-import com.trinhminhvi.techshop.order.enums.DiscountType;
 import com.trinhminhvi.techshop.order.enums.OrderStatus;
 import com.trinhminhvi.techshop.order.enums.PaymentMethod;
 import com.trinhminhvi.techshop.order.enums.PaymentProvider;
 import com.trinhminhvi.techshop.order.enums.PaymentStatus;
-import com.trinhminhvi.techshop.order.repository.CouponRepository;
-import com.trinhminhvi.techshop.order.repository.CouponUsageRepository;
 import com.trinhminhvi.techshop.order.repository.OrderItemRepository;
 import com.trinhminhvi.techshop.order.repository.OrderRepository;
 import com.trinhminhvi.techshop.order.service.OrderService;
@@ -310,7 +308,7 @@ public class OrderServiceImpl implements OrderService {
         Coupon coupon = couponRepository.findByCode(request.getCouponCode())
                 .orElseThrow(() -> new RuntimeException("Coupon not found"));
 
-        if (!coupon.isActive()) {
+        if (!coupon.getActive()) {
             throw new RuntimeException("Coupon is inactive");
         }
 
@@ -488,7 +486,7 @@ public class OrderServiceImpl implements OrderService {
                         .toList());
     }
 
-    // Lưu lại coupon đã xử dụng
+    // Lưu lại coupon đã xử dụng và cập nhật số lượng coupon
     private void saveCouponUsage(
             User user,
             Coupon coupon) {

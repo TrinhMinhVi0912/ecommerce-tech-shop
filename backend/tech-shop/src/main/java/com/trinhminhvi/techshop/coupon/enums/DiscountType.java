@@ -1,4 +1,4 @@
-package com.trinhminhvi.techshop.order.enums;
+package com.trinhminhvi.techshop.coupon.enums;
 
 public enum DiscountType {
     PERCENT,

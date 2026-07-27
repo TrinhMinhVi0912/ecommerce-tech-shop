@@ -1,7 +1,9 @@
-package com.trinhminhvi.techshop.order.entity;
+package com.trinhminhvi.techshop.coupon.entity;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.trinhminhvi.techshop.order.entity.Order;
 import com.trinhminhvi.techshop.user.entity.User;
 
 import jakarta.persistence.Column;
@@ -40,6 +42,13 @@ public class CouponUsage {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false)
+    private Order order;
+
+    @Column(name = "discount_amount", nullable = false)
+    private BigDecimal discountAmount;
 
     @Column(name = "used_at")
     private LocalDateTime usedAt;
