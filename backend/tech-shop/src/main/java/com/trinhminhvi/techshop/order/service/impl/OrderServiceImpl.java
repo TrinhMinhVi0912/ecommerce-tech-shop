@@ -29,11 +29,14 @@ import com.trinhminhvi.techshop.order.dto.internal.CheckoutAddress;
 import com.trinhminhvi.techshop.order.dto.internal.PriceSummary;
 import com.trinhminhvi.techshop.order.dto.request.CheckoutRequest;
 import com.trinhminhvi.techshop.order.dto.request.GetMyOrdersRequest;
+import com.trinhminhvi.techshop.order.dto.request.GetOrdersRequest;
 import com.trinhminhvi.techshop.order.dto.request.NewAddressRequest;
-import com.trinhminhvi.techshop.order.dto.request.OrderSummaryResponse;
+import com.trinhminhvi.techshop.order.dto.request.UpdateOrderStatusRequest;
 import com.trinhminhvi.techshop.order.dto.response.CheckoutResponse;
 import com.trinhminhvi.techshop.order.dto.response.OrderDetailResponse;
 import com.trinhminhvi.techshop.order.dto.response.OrderItemDetailResponse;
+import com.trinhminhvi.techshop.order.dto.response.OrderSummaryForAdminResponse;
+import com.trinhminhvi.techshop.order.dto.response.OrderSummaryResponse;
 import com.trinhminhvi.techshop.order.dto.response.VariantAttributeResponse;
 import com.trinhminhvi.techshop.order.entity.Order;
 import com.trinhminhvi.techshop.order.entity.OrderItem;
@@ -41,6 +44,7 @@ import com.trinhminhvi.techshop.order.enums.OrderStatus;
 import com.trinhminhvi.techshop.order.enums.PaymentMethod;
 import com.trinhminhvi.techshop.order.enums.PaymentProvider;
 import com.trinhminhvi.techshop.order.enums.PaymentStatus;
+import com.trinhminhvi.techshop.order.mapper.OrderMapper;
 import com.trinhminhvi.techshop.order.repository.OrderItemRepository;
 import com.trinhminhvi.techshop.order.repository.OrderRepository;
 import com.trinhminhvi.techshop.order.service.OrderService;
@@ -72,6 +76,8 @@ public class OrderServiceImpl implements OrderService {
     private final OrderItemRepository orderItemRepository;
     private final PaymentRepository paymentRepository;
     private final ProductVariantRepository productVariantRepository;
+
+    private final OrderMapper orderMapper;
 
     // @PersistenceContext
     // private EntityManager entityManager;
@@ -489,7 +495,9 @@ public class OrderServiceImpl implements OrderService {
     // Lưu lại coupon đã xử dụng và cập nhật số lượng coupon
     private void saveCouponUsage(
             User user,
-            Coupon coupon) {
+            Coupon coupon,
+            Order order,
+            BigDecimal discountAmount) {
 
         if (coupon == null) {
             return;
@@ -498,6 +506,8 @@ public class OrderServiceImpl implements OrderService {
         CouponUsage usage = CouponUsage.builder()
                 .user(user)
                 .coupon(coupon)
+                .order(order)
+                .discountAmount(discountAmount)
                 .usedAt(LocalDateTime.now())
                 .build();
 
@@ -805,6 +815,21 @@ public class OrderServiceImpl implements OrderService {
         couponRepository.save(coupon);
     }
 
+    // Helper dành cho việc cập nhật trạng thái của admin
+
+    private void validateAdminCancelable(Order order) {
+
+        if (order.getStatus() == OrderStatus.COMPLETED) {
+            throw new RuntimeException(
+                    "Cannot cancel an order that is already completed.");
+        }
+
+        if (order.getStatus() == OrderStatus.CANCELLED) {
+            throw new RuntimeException(
+                    "Order is already cancelled.");
+        }
+    }
+
     // Hàm chức năng
 
     @Override
@@ -895,7 +920,7 @@ public class OrderServiceImpl implements OrderService {
 
         updateStock(cartItems);
 
-        saveCouponUsage(user, coupon);
+        saveCouponUsage(user, coupon, order, discount);
 
         removeCartItems(cartItems);
 
@@ -921,6 +946,65 @@ public class OrderServiceImpl implements OrderService {
         restoreStock(order);
 
         restoreCoupon(user, order);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageableResponse<List<OrderSummaryForAdminResponse>> getAllOrdersForAdmin(GetOrdersRequest request) {
+
+        Sort sort = "DESC".equalsIgnoreCase(request.getSortDir())
+                ? Sort.by(request.getSortBy()).descending()
+                : Sort.by(request.getSortBy()).ascending();
+
+        Pageable pageable = PageRequest.of(
+                request.getPageNum() - 1,
+                request.getPageSize(),
+                sort);
+
+        Page<Order> orderPage = request.getStatus() != null
+                ? orderRepository.findByStatus(request.getStatus(), pageable)
+                : orderRepository.findAll(pageable);
+
+        List<OrderSummaryForAdminResponse> items = orderPage.getContent()
+                .stream()
+                .map(orderMapper::toOrderSummaryForAdminResponse)
+                .toList();
+
+        return PageableResponse.<List<OrderSummaryForAdminResponse>>builder()
+                .pageNum(request.getPageNum())
+                .pageSize(request.getPageSize())
+                .totalElements(orderPage.getTotalElements())
+                .totalPages(orderPage.getTotalPages())
+                .items(items)
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public void updateOrderStatusForAdmin(String orderId, UpdateOrderStatusRequest request) {
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found."));
+
+        OrderStatus currentStatus = order.getStatus();
+        OrderStatus newStatus = request.getStatus();
+
+        if (currentStatus == newStatus) {
+            return;
+        }
+
+        if (newStatus == OrderStatus.CANCELLED) {
+            validateAdminCancelable(order);
+            cancelOrderStatus(order);
+            cancelPayment(order);
+            restoreStock(order);
+            restoreCoupon(order.getUser(), order);
+            return;
+        }
+
+        order.setStatus(newStatus);
+        order.setUpdatedAt(LocalDateTime.now());
+        orderRepository.save(order);
     }
 
 }

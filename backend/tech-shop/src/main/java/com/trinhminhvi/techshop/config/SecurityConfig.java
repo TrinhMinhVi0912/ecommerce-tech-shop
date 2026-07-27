@@ -17,7 +17,7 @@ public class SecurityConfig {
             "/products", "/products/*", "/products/*/*",
             "/images/products/*",
             "/review/*/*",
-            "/users/*",
+            "/users/*","/users/*/*",
             "/addresses","/addresses/*","/addresses/*/default",
             "/cart","/cart/*","/cart/*/*",
             "/orders","/orders/*","/orders/*/*",

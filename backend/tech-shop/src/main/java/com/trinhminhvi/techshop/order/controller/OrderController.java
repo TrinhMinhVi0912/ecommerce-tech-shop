@@ -15,9 +15,9 @@ import com.trinhminhvi.techshop.common.ApiResponse;
 import com.trinhminhvi.techshop.common.PageableResponse;
 import com.trinhminhvi.techshop.order.dto.request.CheckoutRequest;
 import com.trinhminhvi.techshop.order.dto.request.GetMyOrdersRequest;
-import com.trinhminhvi.techshop.order.dto.request.OrderSummaryResponse;
 import com.trinhminhvi.techshop.order.dto.response.CheckoutResponse;
 import com.trinhminhvi.techshop.order.dto.response.OrderDetailResponse;
+import com.trinhminhvi.techshop.order.dto.response.OrderSummaryResponse;
 import com.trinhminhvi.techshop.order.service.OrderService;
 import com.trinhminhvi.techshop.security.JwtService;
 

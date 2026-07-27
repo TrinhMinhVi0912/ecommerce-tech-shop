@@ -1,4 +1,4 @@
-package com.trinhminhvi.techshop.product.enums;
+package com.trinhminhvi.techshop.common;
 
 import java.util.Arrays;
 
