@@ -3,6 +3,7 @@ package com.trinhminhvi.techshop.brand.service;
 import java.util.List;
 import org.springframework.data.domain.Pageable;
 
+import com.trinhminhvi.techshop.banner.dto.response.BannerResponse;
 import com.trinhminhvi.techshop.brand.dto.request.CreateBrandRequest;
 import com.trinhminhvi.techshop.brand.dto.request.GetBrandsRequest;
 import com.trinhminhvi.techshop.brand.dto.request.UpdateBrandRequest;
@@ -20,4 +21,5 @@ public interface BrandService {
     BrandResponse updateBrand(Integer id, UpdateBrandRequest request);
 
     void deleteBrand(Integer id);
+
 }

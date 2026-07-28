@@ -104,7 +104,11 @@ Quản lý danh mục / hãng
 
 Quản lý khuyến mãi
     Tạo mã giảm giá
-    Flash sale
+
+chua lam    Flash sale
+
+Quản lý banner:
+    xem thêm xóa
 
 -------------------------------------------
 Business Logic (Lưu ý)
