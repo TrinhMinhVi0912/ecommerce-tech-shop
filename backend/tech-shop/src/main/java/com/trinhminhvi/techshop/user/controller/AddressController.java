@@ -1,5 +1,6 @@
 package com.trinhminhvi.techshop.user.controller;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.trinhminhvi.techshop.common.ApiResponse;
+import com.trinhminhvi.techshop.security.CustomUserDetails;
 import com.trinhminhvi.techshop.security.JwtService;
 import com.trinhminhvi.techshop.user.dto.request.AddAddressRequest;
 import com.trinhminhvi.techshop.user.dto.request.UpdateAddressRequest;
@@ -34,16 +36,13 @@ public class AddressController {
     @PostMapping
     public ApiResponse<AddAddressResponse> addAddress(
             @RequestBody @Validated AddAddressRequest request,
-            HttpServletRequest httpServletRequest) {
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
 
-        String token = jwtService.extractToken(httpServletRequest);
-
-        String userId = jwtService.extractUserIdFromToken(token);
 
         return ApiResponse.<AddAddressResponse>builder()
                 .success(true)
                 .message("Add Address Successfully")
-                .data(addressService.addAddress(userId, request))
+                .data(addressService.addAddress(currentUser.getUserId(), request))
                 .build();
     }
 
@@ -54,29 +53,21 @@ public class AddressController {
 
             @RequestBody @Validated UpdateAddressRequest request,
 
-            HttpServletRequest httpServletRequest) {
-
-        String token = jwtService.extractToken(httpServletRequest);
-
-        String userId = jwtService.extractUserIdFromToken(token);
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
 
         return ApiResponse.<UpdateAddressResponse>builder()
                 .success(true)
                 .message("Update Address Successfully")
-                .data(addressService.updateAddress(userId, addressId, request))
+                .data(addressService.updateAddress(currentUser.getUserId(), addressId, request))
                 .build();
     }
 
     @DeleteMapping("/{addressId}")
     public ApiResponse<Object> deleteAddress(
             @PathVariable Integer addressId,
-            HttpServletRequest request) {
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
 
-        String token = jwtService.extractToken(request);
-
-        String userId = jwtService.extractUserIdFromToken(token);
-
-        addressService.deleteAddress(userId, addressId);
+        addressService.deleteAddress(currentUser.getUserId(), addressId);
 
         return ApiResponse.builder()
                 .success(true)
@@ -88,13 +79,9 @@ public class AddressController {
     @PatchMapping("/{addressId}/default")
     public ApiResponse<Object> setDefaultAddress(
             @PathVariable Integer addressId,
-            HttpServletRequest request) {
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
 
-        String token = jwtService.extractToken(request);
-
-        String userId = jwtService.extractUserIdFromToken(token);
-
-        addressService.setDefaultAddress(userId, addressId);
+        addressService.setDefaultAddress(currentUser.getUserId(), addressId);
 
         return ApiResponse.builder()
                 .success(true)

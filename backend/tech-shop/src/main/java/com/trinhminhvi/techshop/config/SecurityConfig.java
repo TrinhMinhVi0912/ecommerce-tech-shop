@@ -8,28 +8,32 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import com.trinhminhvi.techshop.security.JwtAuthenticationFilter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import lombok.RequiredArgsConstructor;
 
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final String[] PUBLIC_ENDPOINTS = {
-            "/auth/*",
-            "/products", "/products/*", "/products/*/*",
-            "/images/products/*",
-            "/review/*/*",
-            "/users/*","/users/*/*",
-            "/addresses","/addresses/*","/addresses/*/default",
-            "/cart","/cart/*","/cart/*/*",
-            "/orders","/orders/*","/orders/*/*",
-            "/payment/*","/payment/*/*",
-            "/wishlist","/wishlist/*",
-            "/categories","/categories/*",
-            "/brands","/brands/*",
-            "/admin/*","/admin/*/*","/admin/*/*/*"
+    private static final String[] PUBLIC_ENDPOINTS = {
+            "/auth/**",
+
+            "/products",
+            "/products/**",
+
+            "/images/**",
+
+            "/review/**",
+
     };
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
     @Value("${jwt.secret}")
     private String secretKey;
-
 
     @Bean
     PasswordEncoder passwordEncoder() {
@@ -39,18 +43,36 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
-                .authorizeHttpRequests(request -> request.requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS).permitAll()
-                        .requestMatchers(HttpMethod.GET, PUBLIC_ENDPOINTS).permitAll()
-                        .requestMatchers(HttpMethod.PUT,PUBLIC_ENDPOINTS).permitAll()
-                        .requestMatchers(HttpMethod.DELETE,PUBLIC_ENDPOINTS).permitAll()
-                        .requestMatchers(HttpMethod.POST,PUBLIC_ENDPOINTS).permitAll()
-                        .requestMatchers(HttpMethod.PATCH,PUBLIC_ENDPOINTS).permitAll()
+                .authorizeHttpRequests(auth -> auth
+
+                        // Public
+                        .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
+
+                        // Admin
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+
+                        // User hoặc Admin
+                        .requestMatchers(
+                                "/users/**",
+                                "/addresses/**",
+                                "/cart/**",
+                                "/orders/**",
+                                "/wishlist/**")
+                        .hasAnyRole("USER", "ADMIN")
+
+                        // Các endpoint còn lại
                         .anyRequest().authenticated());
+
+        httpSecurity.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         // httpSecurity.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer ->
         // jwtConfigurer.decoder(jwtDecoder())));
 
         httpSecurity.csrf(AbstractHttpConfigurer -> AbstractHttpConfigurer.disable());
+
+        httpSecurity.addFilterBefore(
+                jwtAuthenticationFilter,
+                UsernamePasswordAuthenticationFilter.class);
 
         return httpSecurity.build();
     }

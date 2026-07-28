@@ -2,6 +2,7 @@ package com.trinhminhvi.techshop.order.controller;
 
 import java.util.List;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -19,6 +20,7 @@ import com.trinhminhvi.techshop.order.dto.response.CheckoutResponse;
 import com.trinhminhvi.techshop.order.dto.response.OrderDetailResponse;
 import com.trinhminhvi.techshop.order.dto.response.OrderSummaryResponse;
 import com.trinhminhvi.techshop.order.service.OrderService;
+import com.trinhminhvi.techshop.security.CustomUserDetails;
 import com.trinhminhvi.techshop.security.JwtService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -37,61 +39,45 @@ public class OrderController {
     @GetMapping
     public ApiResponse<PageableResponse<List<OrderSummaryResponse>>> getMyOrders(
             GetMyOrdersRequest request,
-            HttpServletRequest servletRequest) {
-
-        String token = jwtService.extractToken(servletRequest);
-
-        String userId = jwtService.extractUserIdFromToken(token);
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
 
         return ApiResponse.<PageableResponse<List<OrderSummaryResponse>>>builder()
                 .success(true)
                 .message("Get Orders Successfully")
-                .data(orderService.getMyOrders(userId, request))
+                .data(orderService.getMyOrders(currentUser.getUserId(), request))
                 .build();
     }
 
     @GetMapping("/{orderId}")
     public ApiResponse<OrderDetailResponse> getMyOrderDetail(
             @PathVariable String orderId,
-            HttpServletRequest servletRequest) {
-
-        String token = jwtService.extractToken(servletRequest);
-
-        String userId = jwtService.extractUserIdFromToken(token);
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
 
         return ApiResponse.<OrderDetailResponse>builder()
                 .success(true)
                 .message("Get Order Detail Successfully")
-                .data(orderService.getMyOrderDetail(userId, orderId))
+                .data(orderService.getMyOrderDetail(currentUser.getUserId(), orderId))
                 .build();
     }
 
     @PostMapping("/checkout")
     public ApiResponse<CheckoutResponse> checkout(
             @RequestBody @Valid CheckoutRequest request,
-            HttpServletRequest servletRequest) {
-
-        String token = jwtService.extractToken(servletRequest);
-
-        String userId = jwtService.extractUserIdFromToken(token);
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
 
         return ApiResponse.<CheckoutResponse>builder()
                 .success(true)
                 .message("Checkout successfully")
-                .data(orderService.checkout(userId, request))
+                .data(orderService.checkout(currentUser.getUserId(), request))
                 .build();
     }
 
     @PatchMapping("/{orderId}/cancel")
     public ApiResponse<Void> cancelOrder(
             @PathVariable String orderId,
-            HttpServletRequest servletRequest) {
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
 
-        String token = jwtService.extractToken(servletRequest);
-
-        String userId = jwtService.extractUserIdFromToken(token);
-
-        orderService.cancelOrder(userId, orderId);
+        orderService.cancelOrder(currentUser.getUserId(), orderId);
 
         return ApiResponse.<Void>builder()
                 .success(true)

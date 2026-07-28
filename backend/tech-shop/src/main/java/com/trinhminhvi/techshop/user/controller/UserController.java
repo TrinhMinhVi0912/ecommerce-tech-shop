@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.trinhminhvi.techshop.common.ApiResponse;
+import com.trinhminhvi.techshop.security.CustomUserDetails;
 import com.trinhminhvi.techshop.security.JwtService;
 import com.trinhminhvi.techshop.user.dto.request.AddAddressRequest;
 import com.trinhminhvi.techshop.user.dto.request.ChangePasswordRequest;
@@ -21,6 +22,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.MediaType;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,24 +42,21 @@ public class UserController {
         @PostMapping("/change-profile")
         public ApiResponse<UpdateProfileResponse> updateProfile(
                         @RequestBody UpdateProfileUserRequest updateProfileUserRequest,
-                        HttpServletRequest httpServletRequest) {
-                String token = jwtService.extractToken(httpServletRequest);
-                String userId = jwtService.extractUserIdFromToken(token);
+                        @AuthenticationPrincipal CustomUserDetails currentUser) {
+
                 return ApiResponse.<UpdateProfileResponse>builder()
                                 .success(true)
                                 .message("Update Profile User Successfully")
-                                .data(userService.updateInfo(updateProfileUserRequest, userId))
+                                .data(userService.updateInfo(updateProfileUserRequest, currentUser.getUserId()))
                                 .build();
         }
 
         @PostMapping("/change-password")
         public ApiResponse<Object> changePassword(
                         @RequestBody @Validated ChangePasswordRequest changePasswordRequest,
-                        HttpServletRequest httpServletRequest) {
-                String token = jwtService.extractToken(httpServletRequest);
-                String userId = jwtService.extractUserIdFromToken(token);
+                        @AuthenticationPrincipal CustomUserDetails currentUser) {
 
-                userService.updatePassword(changePasswordRequest, userId);
+                userService.updatePassword(changePasswordRequest, currentUser.getUserId());
 
                 return ApiResponse.<Object>builder()
                                 .message("Change Password Successflly")
@@ -68,30 +67,22 @@ public class UserController {
 
         @GetMapping("/profile")
         public ApiResponse<UserProfileResponse> getProfile(
-                        HttpServletRequest request) {
-
-                String token = jwtService.extractToken(request);
-
-                String userId = jwtService.extractUserIdFromToken(token);
+                        @AuthenticationPrincipal CustomUserDetails currentUser) {
 
                 return ApiResponse.<UserProfileResponse>builder()
                                 .success(true)
                                 .message("Get profile successfully")
-                                .data(userService.getProfile(userId))
+                                .data(userService.getProfile(currentUser.getUserId()))
                                 .build();
         }
 
         @PatchMapping(value = "/me/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
         public ApiResponse<UserResponse> uploadAvatar(
-                        HttpServletRequest request,
+                        @AuthenticationPrincipal CustomUserDetails currentUser,
                         @RequestPart("avatar") MultipartFile avatar) {
 
-                String token = jwtService.extractToken(request);
-
-                String userId = jwtService.extractUserIdFromToken(token);
-
                 return ApiResponse.success(
-                                userService.uploadAvatar(userId, avatar),
+                                userService.uploadAvatar(currentUser.getUserId(), avatar),
                                 "Upload avatar successfully");
         }
 

@@ -2,6 +2,7 @@ package com.trinhminhvi.techshop.wishlist.controller;
 
 import java.util.List;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.trinhminhvi.techshop.common.ApiResponse;
 import com.trinhminhvi.techshop.common.PageableResponse;
+import com.trinhminhvi.techshop.security.CustomUserDetails;
 import com.trinhminhvi.techshop.security.JwtService;
 import com.trinhminhvi.techshop.wishlist.dto.request.GetMyWishlistRequest;
 import com.trinhminhvi.techshop.wishlist.dto.response.WishlistResponse;
@@ -33,13 +35,9 @@ public class WishlistController {
     @PostMapping("/{productId}")
     public ApiResponse<Void> addToWishlist(
             @PathVariable Integer productId,
-            HttpServletRequest request) {
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
 
-        String token = jwtService.extractToken(request);
-
-        String userId = jwtService.extractUserIdFromToken(token);
-
-        wishlistService.addToWishlist(userId, productId);
+        wishlistService.addToWishlist(currentUser.getUserId(), productId);
 
         return ApiResponse.<Void>builder()
                 .success(true)
@@ -50,13 +48,9 @@ public class WishlistController {
     @DeleteMapping("/{productId}")
     public ApiResponse<Void> removeFromWishlist(
             @PathVariable Integer productId,
-            HttpServletRequest request) {
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
 
-        String token = jwtService.extractToken(request);
-
-        String userId = jwtService.extractUserIdFromToken(token);
-
-        wishlistService.removeFromWishlist(userId, productId);
+        wishlistService.removeFromWishlist(currentUser.getUserId(), productId);
 
         return ApiResponse.<Void>builder()
                 .success(true)
@@ -67,16 +61,12 @@ public class WishlistController {
     @GetMapping
     public ApiResponse<PageableResponse<List<WishlistResponse>>> getMyWishlist(
             GetMyWishlistRequest request,
-            HttpServletRequest servletRequest) {
-
-        String token = jwtService.extractToken(servletRequest);
-
-        String userId = jwtService.extractUserIdFromToken(token);
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
 
         return ApiResponse.<PageableResponse<List<WishlistResponse>>>builder()
                 .success(true)
                 .message("Get wishlist successfully.")
-                .data(wishlistService.getMyWishlist(userId, request))
+                .data(wishlistService.getMyWishlist(currentUser.getUserId(), request))
                 .build();
     }
 

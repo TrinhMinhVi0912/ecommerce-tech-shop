@@ -28,9 +28,7 @@ import com.trinhminhvi.techshop.product.dto.request.GetProductsRequest;
 import com.trinhminhvi.techshop.product.dto.request.UpdateProductRequest;
 import com.trinhminhvi.techshop.product.dto.request.UpdateProductStatusRequest;
 import com.trinhminhvi.techshop.product.dto.response.ProductDetailForAdminResponse;
-import com.trinhminhvi.techshop.product.dto.response.ProductDetailResponse;
 import com.trinhminhvi.techshop.product.dto.response.ProductForAdminResponse;
-import com.trinhminhvi.techshop.product.dto.response.ProductResponse;
 import com.trinhminhvi.techshop.product.service.ProductService;
 
 import lombok.RequiredArgsConstructor;

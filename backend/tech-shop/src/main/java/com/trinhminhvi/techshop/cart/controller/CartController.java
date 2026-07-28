@@ -1,5 +1,6 @@
 package com.trinhminhvi.techshop.cart.controller;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -16,6 +17,7 @@ import com.trinhminhvi.techshop.cart.dto.request.UpdateCartItemRequest;
 import com.trinhminhvi.techshop.cart.dto.response.CartResponse;
 import com.trinhminhvi.techshop.cart.service.CartService;
 import com.trinhminhvi.techshop.common.ApiResponse;
+import com.trinhminhvi.techshop.security.CustomUserDetails;
 import com.trinhminhvi.techshop.security.JwtService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,29 +33,23 @@ public class CartController {
     private final CartService cartService;
 
     @GetMapping
-    public ApiResponse<CartResponse> getMyCart(HttpServletRequest request) {
+    public ApiResponse<CartResponse> getMyCart(@AuthenticationPrincipal CustomUserDetails currentUser) {
 
-        String token = jwtService.extractToken(request);
-
-        String userId = jwtService.extractUserIdFromToken(token);
 
         return ApiResponse.<CartResponse>builder()
                 .success(true)
                 .message("Get Cart Successfully")
-                .data(cartService.getMyCart(userId))
+                .data(cartService.getMyCart(currentUser.getUserId()))
                 .build();
     }
 
     @PostMapping("/items")
     public ApiResponse<Object> addCartItem(
             @RequestBody @Validated AddCartItemRequest request,
-            HttpServletRequest servletRequest) {
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
 
-        String token = jwtService.extractToken(servletRequest);
 
-        String userId = jwtService.extractUserIdFromToken(token);
-
-        cartService.addCartItem(userId, request);
+        cartService.addCartItem(currentUser.getUserId(), request);
 
         return ApiResponse.builder()
                 .success(true)
@@ -66,13 +62,9 @@ public class CartController {
     public ApiResponse<Object> updateCartItem(
             @PathVariable Integer cartItemId,
             @RequestBody @Validated UpdateCartItemRequest request,
-            HttpServletRequest servletRequest) {
+            @AuthenticationPrincipal CustomUserDetails currentUser){ 
 
-        String token = jwtService.extractToken(servletRequest);
-
-        String userId = jwtService.extractUserIdFromToken(token);
-
-        cartService.updateCartItem(userId, cartItemId, request);
+        cartService.updateCartItem(currentUser.getUserId(), cartItemId, request);
 
         return ApiResponse.builder()
                 .success(true)
@@ -84,13 +76,10 @@ public class CartController {
     @DeleteMapping("/items/{cartItemId}")
     public ApiResponse<Object> deleteCartItem(
             @PathVariable Integer cartItemId,
-            HttpServletRequest servletRequest) {
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
 
-        String token = jwtService.extractToken(servletRequest);
 
-        String userId = jwtService.extractUserIdFromToken(token);
-
-        cartService.deleteCartItem(userId, cartItemId);
+        cartService.deleteCartItem(currentUser.getUserId(), cartItemId);
 
         return ApiResponse.builder()
                 .success(true)

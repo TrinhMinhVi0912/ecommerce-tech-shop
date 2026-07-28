@@ -57,6 +57,7 @@ public class AuthServiceImpl implements AuthService {
 
         user.setCreatedAt(LocalDateTime.now());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setEnabled(true);
 
         Role role = roleRepository.findByName("USER").orElseThrow(
                 () -> new RuntimeException("Role not Found"));
@@ -73,7 +74,9 @@ public class AuthServiceImpl implements AuthService {
     public LoginResponse login(LoginRequest request) {
         User user = userRepository.findByUserName(request.getUserName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
-
+        if(!user.isEnabled()){
+            throw new RuntimeException("Tài khoản đã bị khóa");
+        }
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid password");
         }

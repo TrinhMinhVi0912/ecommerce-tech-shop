@@ -1,6 +1,7 @@
 package com.trinhminhvi.techshop.review.controller;
 
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +18,7 @@ import com.trinhminhvi.techshop.review.dto.response.AddReviewResponse;
 import com.trinhminhvi.techshop.review.dto.response.ProductReviewResponse;
 import com.trinhminhvi.techshop.review.dto.response.UpdateReviewResponse;
 import com.trinhminhvi.techshop.review.service.ReviewService;
+import com.trinhminhvi.techshop.security.CustomUserDetails;
 import com.trinhminhvi.techshop.security.JwtService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -70,15 +72,12 @@ public class ReviewController {
         public ApiResponse<AddReviewResponse> addReview(
                         @Validated @RequestBody AddReviewRequest addReviewRequest,
                         @PathVariable Integer productId,
-                        HttpServletRequest httpServletRequest) {
-                String token = jwtService.extractToken(httpServletRequest);
-
-                String userId = jwtService.extractUserIdFromToken(token);
+                        @AuthenticationPrincipal CustomUserDetails currentUser) {
 
                 return ApiResponse.<AddReviewResponse>builder()
                                 .success(true)
                                 .message("Add Review Successfully")
-                                .data(reviewService.addReview(userId, productId, addReviewRequest))
+                                .data(reviewService.addReview(currentUser.getUserId(), productId, addReviewRequest))
                                 .build();
         }
 
@@ -86,16 +85,12 @@ public class ReviewController {
         public ApiResponse<UpdateReviewResponse> updateReview(
                         @PathVariable Integer productId,
                         @Validated @RequestBody UpdateReviewRequest updateReviewRequest,
-                        HttpServletRequest httpServletRequest) {
-
-                String token = jwtService.extractToken(httpServletRequest);
-
-                String userId = jwtService.extractUserIdFromToken(token);
+                        @AuthenticationPrincipal CustomUserDetails currentUser) {
 
                 return ApiResponse.<UpdateReviewResponse>builder()
                                 .success(true)
                                 .message("Update review successfully")
-                                .data(reviewService.updateReview(userId, productId, updateReviewRequest))
+                                .data(reviewService.updateReview(currentUser.getUserId(), productId, updateReviewRequest))
                                 .build();
 
         }
@@ -103,13 +98,9 @@ public class ReviewController {
         @DeleteMapping
         public ApiResponse<Object> deleteReview(
                         @PathVariable Integer productId,
-                        HttpServletRequest httpServletRequest) {
+                        @AuthenticationPrincipal CustomUserDetails currentUser) {
 
-                String token = jwtService.extractToken(httpServletRequest);
-
-                String userId = jwtService.extractUserIdFromToken(token);
-
-                reviewService.deleteReview(userId, productId);
+                reviewService.deleteReview(currentUser.getUserId(), productId);
 
                 return ApiResponse.<Object>builder()
                 .success(true)

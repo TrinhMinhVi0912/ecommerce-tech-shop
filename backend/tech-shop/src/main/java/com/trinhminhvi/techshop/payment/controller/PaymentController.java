@@ -12,15 +12,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.trinhminhvi.techshop.common.ApiResponse;
-import com.trinhminhvi.techshop.order.service.OrderService;
-import com.trinhminhvi.techshop.payment.dto.request.CreateVNPayPaymentRequest;
 import com.trinhminhvi.techshop.payment.dto.response.CreateVnPayPaymentResponse;
 import com.trinhminhvi.techshop.payment.dto.response.VnPayIpnResponse;
 import com.trinhminhvi.techshop.payment.service.PaymentService;
 import com.trinhminhvi.techshop.security.JwtService;
-
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RequestMapping("/payment")
