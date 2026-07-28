@@ -50,6 +50,10 @@ public class User {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "is_enabled", nullable = false)
+    @Builder.Default
+    private boolean enabled = true;
+
     @ManyToOne
     @JoinColumn(name = "role_id")
     private Role role;
