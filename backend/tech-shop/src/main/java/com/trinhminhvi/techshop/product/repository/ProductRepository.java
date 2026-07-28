@@ -66,4 +66,6 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     boolean existsByNameIgnoreCaseAndProductIdNot(
             String name,
             Integer productId);
+
+    long countByIsActiveTrue();
 }

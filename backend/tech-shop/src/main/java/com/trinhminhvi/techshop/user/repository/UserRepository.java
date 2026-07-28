@@ -47,4 +47,6 @@ public interface UserRepository extends JpaRepository<User, String> {
             @Param("search") String search,
             Pageable pageable);
 
+    long countByEnabledTrue();
+
 }
