@@ -23,8 +23,8 @@ import com.trinhminhvi.techshop.banner.dto.response.BannerResponse;
 import com.trinhminhvi.techshop.banner.entity.Banner;
 import com.trinhminhvi.techshop.banner.repository.BannerRepository;
 import com.trinhminhvi.techshop.banner.service.BannerService;
-import com.trinhminhvi.techshop.common.ImageExtension;
 import com.trinhminhvi.techshop.common.PageableResponse;
+import com.trinhminhvi.techshop.common.enums.ImageExtension;
 
 import lombok.RequiredArgsConstructor;
 

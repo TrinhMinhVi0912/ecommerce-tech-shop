@@ -15,8 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.trinhminhvi.techshop.common.ImageExtension;
 import com.trinhminhvi.techshop.common.PageableResponse;
+import com.trinhminhvi.techshop.common.enums.ImageExtension;
 import com.trinhminhvi.techshop.user.dto.request.ChangePasswordRequest;
 import com.trinhminhvi.techshop.user.dto.request.GetUsersRequest;
 import com.trinhminhvi.techshop.user.dto.request.UpdateProfileUserRequest;
