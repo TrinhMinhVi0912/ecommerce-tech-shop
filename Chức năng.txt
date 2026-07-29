@@ -125,3 +125,5 @@ Gợi ý sản phẩm (recommendation)
 Email xác nhận đơn hàng
 Realtime (stock / order)
 Chat hỗ trợ
+
+==> 67 endpoint
