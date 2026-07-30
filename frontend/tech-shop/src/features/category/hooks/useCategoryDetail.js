@@ -1,50 +1,6 @@
 import { useEffect, useState } from "react";
 import categoryApi from "../api/categoryApi";
 
-export default function useCategories() {
-
-    const [categories, setCategories] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-
-    useEffect(() => {
-
-        const fetchCategories = async () => {
-
-            try {
-
-                const response = await categoryApi.getAll();
-                
-                setCategories(response.data);
-
-            } catch (err) {
-
-                console.error("Category API Error:", err);
-                setError(err);
-
-            } finally {
-
-                setLoading(false);
-
-            }
-
-        };
-
-        fetchCategories();
-
-    }, []);
-
-    return {
-        categories,
-        loading,
-        error
-    };
-}
-
-
-import { useEffect, useState } from "react";
-import categoryApi from "../api/categoryApi";
-
 export default function useCategoryDetail(id) {
 
     const [data, setData] = useState(null);

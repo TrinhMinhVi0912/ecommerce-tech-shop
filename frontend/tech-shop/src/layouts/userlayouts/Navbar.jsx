@@ -1,8 +1,25 @@
 import React, { useState } from 'react';
 import { Laptop, Search, Heart, ShoppingCart, X } from 'lucide-react';
+import useCategories from '../../features/category/hooks/useCategories';
+import useBrands from '../../features/brand/hook/useBrands';
+import useBanners from '../../features/banner/hook/useBanners';
+
 
 const Navbar = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  const { categories } = useCategories();
+  const { brands } = useBrands();
+  const { banners } = useBanners();
+
+  console.log("====================");
+  
+  console.log(categories);
+  console.log(brands);
+  console.log(banners);
+  
+  console.log("====================");
+
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-200 shadow-sm">

@@ -20,12 +20,13 @@ public class SecurityConfig {
 
     private static final String[] PUBLIC_ENDPOINTS = {
             "/auth/**",
-
+            "/banners/**",
             "/products",
             "/products/**",
 
             "/images/**",
-
+            "/brands/**",
+            "/categories/**",
             "/review/**",
 
     };
@@ -69,6 +70,7 @@ public class SecurityConfig {
         // jwtConfigurer.decoder(jwtDecoder())));
 
         httpSecurity.csrf(AbstractHttpConfigurer -> AbstractHttpConfigurer.disable());
+        
 
         httpSecurity.addFilterBefore(
                 jwtAuthenticationFilter,
