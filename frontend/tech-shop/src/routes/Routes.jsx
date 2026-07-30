@@ -1,28 +1,28 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-import UserLayout from "../layouts/UserLayout/UserLayout";
-import AuthLayout from "../layouts/AuthLayout/AuthLayout";
-import AdminLayout from "../layouts/AdminLayout/AdminLayout";
+import UserLayout from "../layouts/userlayouts/UserLayout";
+import AuthLayout from "../layouts/authlayout/AuthLayout";
+import AdminLayout from "../layouts/adminlayouts/AdminLayout";
 
 // User Pages
-import Home from "../pages/Home/Home";
-import ProductList from "../pages/Product/ProductList";
-import ProductDetail from "../pages/Product/ProductDetail";
-import Cart from "../pages/Cart/Cart";
-import Wishlist from "../pages/Wishlist/Wishlist";
-import Profile from "../pages/Profile/Profile";
-import OrderHistory from "../pages/Profile/OrderHistory";
-import OrderDetail from "../pages/Profile/OrderDetail";
+import Home from "../pages/home/Home";
+import ProductList from "../pages/product/ProductList";
+import ProductDetail from "../pages/product/ProductDetail";
+import Cart from "../pages/cart/Cart";
+import Wishlist from "../pages/wishlist/Wishlist";
+import Profile from "../pages/profile/Profile";
+import OrderHistory from "../pages/profile/OrderHistory";
+import OrderDetail from "../pages/profile/OrderDetail";
 
 // Auth Pages
-import Login from "../pages/Auth/Login";
-import Register from "../pages/Auth/Register";
+import Login from "../pages/auth/Login";
+import Register from "../pages/auth/Register";
 
 // Admin Pages
-import Dashboard from "../pages/Admin/Dashboard";
+import Dashboard from "../pages/admin/DashBoard";
 
 // Common
-import NotFound from "../pages/NotFound/NotFound";
+import NotFound from "../pages/notfound/NotFound";
 
 export default function AppRoutes() {
     return (

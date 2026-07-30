@@ -7,32 +7,31 @@ export default function useLogin() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    const login = async (loginRequest) => {
-
+    const login = async (request) => {
         try {
 
-            setLoading(true);
-            setError(null);
+            const response = await authApi.login(request);
 
-            const response = await authApi.login(loginRequest);
+            localStorage.setItem("accessToken", response.data.data.token);
 
-            setData(response.data);
+            localStorage.setItem(
+                "user",
+                JSON.stringify({
+                    userName: response.data.data.userName,
+                    email: response.data.data.email,
+                    role: response.data.data.role,
+                })
+            );
 
-            return response.data;
+            return true;
 
         } catch (err) {
 
-            console.error("Login API Error:", err);
             setError(err);
 
-            throw err;
-
-        } finally {
-
-            setLoading(false);
+            return false;
 
         }
-
     };
 
     return {

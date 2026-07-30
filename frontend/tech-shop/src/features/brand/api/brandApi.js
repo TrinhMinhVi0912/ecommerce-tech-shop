@@ -2,8 +2,16 @@ import axiosClient from "../../../services/axiosClient";
 
 const brandApi = {
 
-    getAll: () => {
-        return axiosClient.get("/brands");
+    getAll: (params = {}) => {
+        return axiosClient.get("/brands", {
+            params: {
+                pageNum: 1,
+                pageSize: 100,
+                sortBy: "brandId",
+                sortDir: "ASC",
+                ...params,
+            },
+        });
     },
 
     getById: (id) => {

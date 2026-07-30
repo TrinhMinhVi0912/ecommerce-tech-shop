@@ -1,20 +1,20 @@
 import { useState } from "react";
-import reviewApi from "../api/reviewApi";
+import userApi from "../api/userApi";
 
-export default function useDeleteReview() {
+export default function useChangePassword() {
 
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    const deleteReview = async (productId) => {
+    const changePassword = async (request) => {
 
         try {
 
             setLoading(true);
             setError(null);
 
-            const response = await reviewApi.deleteReview(productId);
+            const response = await userApi.changePassword(request);
 
             setData(response.data);
 
@@ -22,7 +22,8 @@ export default function useDeleteReview() {
 
         } catch (err) {
 
-            console.error("Delete Review API Error:", err);
+            console.error("Change Password API Error:", err);
+
             setError(err);
 
             throw err;
@@ -30,12 +31,13 @@ export default function useDeleteReview() {
         } finally {
 
             setLoading(false);
+
         }
 
     };
 
     return {
-        deleteReview,
+        changePassword,
         data,
         loading,
         error

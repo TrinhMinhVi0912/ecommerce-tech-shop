@@ -1,20 +1,20 @@
 import { useState } from "react";
-import reviewApi from "../api/reviewApi";
+import addressApi from "../api/addressApi";
 
-export default function useDeleteReview() {
+export default function useDeleteAddress() {
 
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    const deleteReview = async (productId) => {
+    const deleteAddress = async (addressId) => {
 
         try {
 
             setLoading(true);
             setError(null);
 
-            const response = await reviewApi.deleteReview(productId);
+            const response = await addressApi.deleteAddress(addressId);
 
             setData(response.data);
 
@@ -22,7 +22,7 @@ export default function useDeleteReview() {
 
         } catch (err) {
 
-            console.error("Delete Review API Error:", err);
+            console.error("Delete Address API Error:", err);
             setError(err);
 
             throw err;
@@ -30,12 +30,13 @@ export default function useDeleteReview() {
         } finally {
 
             setLoading(false);
+
         }
 
     };
 
     return {
-        deleteReview,
+        deleteAddress,
         data,
         loading,
         error

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import categoryApi from "../api/categoryApi";
+import userApi from "../api/userApi";
 
-export default function useCategories(filter = {}) {
+export default function useProfile() {
 
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -9,17 +9,18 @@ export default function useCategories(filter = {}) {
 
     useEffect(() => {
 
-        const fetchCategories = async () => {
+        const fetchProfile = async () => {
 
             try {
 
-                const response = await categoryApi.getAll(filter);
-                // response.data = { success, message, data: { items: [...] } }
+                const response = await userApi.getProfile();
+
                 setData(response.data);
 
             } catch (err) {
 
-                console.error("Category API Error:", err);
+                console.error("Get Profile API Error:", err);
+
                 setError(err);
 
             } finally {
@@ -30,7 +31,7 @@ export default function useCategories(filter = {}) {
 
         };
 
-        fetchCategories();
+        fetchProfile();
 
     }, []);
 
@@ -39,4 +40,5 @@ export default function useCategories(filter = {}) {
         loading,
         error
     };
+
 }

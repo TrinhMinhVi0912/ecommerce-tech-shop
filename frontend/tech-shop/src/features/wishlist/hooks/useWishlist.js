@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import categoryApi from "../api/categoryApi";
+import wishlistApi from "../api/wishlistApi";
 
-export default function useCategories(filter = {}) {
+export default function useWishlist(params = {}) {
 
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -9,17 +9,17 @@ export default function useCategories(filter = {}) {
 
     useEffect(() => {
 
-        const fetchCategories = async () => {
+        const fetchWishlist = async () => {
 
             try {
 
-                const response = await categoryApi.getAll(filter);
-                // response.data = { success, message, data: { items: [...] } }
+                const response = await wishlistApi.getMyWishlist(params);
+
                 setData(response.data);
 
             } catch (err) {
 
-                console.error("Category API Error:", err);
+                console.error("Wishlist API Error:", err);
                 setError(err);
 
             } finally {
@@ -30,7 +30,7 @@ export default function useCategories(filter = {}) {
 
         };
 
-        fetchCategories();
+        fetchWishlist();
 
     }, []);
 
@@ -39,4 +39,5 @@ export default function useCategories(filter = {}) {
         loading,
         error
     };
+
 }

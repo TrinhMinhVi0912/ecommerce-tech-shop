@@ -110,6 +110,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 || path.startsWith("/brands")
                 || path.startsWith("/categories")
                 || path.startsWith("/images")
+                || path.startsWith("/banners")
                 || path.startsWith("/review");
     }
 }

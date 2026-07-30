@@ -3,7 +3,7 @@ import bannerApi from "../api/bannerApi";
 
 export default function useBanners() {
 
-    const [banners, setBanners] = useState([]);
+    const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -14,8 +14,10 @@ export default function useBanners() {
             try {
 
                 const response = await bannerApi.getActive();
-
-                setBanners(response.data);
+                // response.data = { success, message, data: { items: [...] } }
+                console.log(response);
+                console.log(response.data);
+                setData(response.data);
 
             } catch (err) {
 
@@ -35,7 +37,7 @@ export default function useBanners() {
     }, []);
 
     return {
-        banners,
+        data,
         loading,
         error
     };
