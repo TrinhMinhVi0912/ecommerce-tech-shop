@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechShop - Thiết bị công nghệ cao cấp</title>
+    
+    <!-- Google Font Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            DEFAULT: '#2563EB',
+                            hover: '#1D4ED8',
+                        },
+                        pageBg: '#F8FAFC',
+                        textMain: '#0F172A',
+                        textSub: '#64748B',
+                        borderColor: '#E2E8F0',
+                        success: '#16A34A',
+                        danger: '#DC2626',
+                    },
+                    boxShadow: {
+                        'soft': '0 2px 10px rgba(15, 23, 42, 0.04)',
+                        'dropdown': '0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8FAFC;
+            color: #0F172A;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Nav link underline animation */
+        .nav-link-underline {
+            position: relative;
+        }
+        .nav-link-underline::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: #2563EB;
+            transition: width 0.2s ease-in-out;
+            border-radius: 9999px;
+        }
+        .nav-link-underline:hover::after {
+            width: 100%;
+        }
+
+        /* Custom Scrollbar for Drawer */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #E2E8F0;
+            border-radius: 4px;
+        }
+
+        /* Pulse animation for badge update simulation */
+        @keyframes badgePulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.25); }
+            100% { transform: scale(1); }
+        }
+        .animate-badge-pop {
+            animation: badgePulse 0.3s ease-in-out;
+        }
+
+        /* Smooth Drawer Slide */
+        .drawer-overlay {
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        .drawer-content {
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Dropdown Animation */
+        .dropdown-menu {
+            transition: opacity 0.15s ease-out, transform 0.15s ease-out, visibility 0.15s;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <!-- ==================== HEADER / NAVBAR START ==================== -->
+    <header class="sticky top-0 z-40 w-full bg-white border-b border-borderColor shadow-soft">
+        
+        <!-- TOP NAVBAR (Desktop & Mobile Main Bar) -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-[72px] gap-4 lg:gap-8">
+                
+                <!-- 1. LEFT AREA: Mobile Hamburger & Logo -->
+                <div class="flex items-center gap-3 lg:gap-0">
+                    <!-- Hamburger Button (Mobile & Tablet) -->
+                    <button id="hamburger-btn" aria-label="Mở Menu" class="lg:hidden p-2 rounded-lg text-textMain hover:bg-slate-100 transition-colors focus:outline-none">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+
+                    <!-- Logo TechShop -->
+                    <a href="#" class="flex items-center gap-2.5 group">
+                        <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-sm transition-transform duration-200 group-hover:scale-105">
+                            <i data-lucide="cpu" class="w-6 h-6"></i>
+                        </div>
+                        <span class="text-xl font-bold tracking-tight text-textMain font-sans">
+                            Tech<span class="text-primary">Shop</span>
+                        </span>
+                    </a>
+                </div>
+
+                <!-- 2. CENTER AREA: Search Bar (Desktop) -->
+                <div class="hidden md:flex flex-1 max-w-[560px] mx-auto">
+                    <div class="relative w-full">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-textSub">
+                            <i data-lucide="search" class="w-5 h-5"></i>
+                        </div>
+                        <input 
+                            type="text" 
+                            placeholder="Tìm kiếm laptop, bàn phím, chuột..." 
+                            class="w-full pl-11 pr-4 py-2.5 bg-pageBg text-textMain placeholder-textSub text-sm font-medium rounded-full border border-borderColor focus:outline-none focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all duration-200"
+                        >
+                    </div>
+                </div>
+
+                <!-- 3. RIGHT AREA: Wishlist, Cart, User Profile -->
+                <div class="flex items-center gap-1.5 sm:gap-3">
+                    
+                    <!-- Search Icon Button (Mobile Only) -->
+                    <button id="mobile-search-btn" aria-label="Tìm kiếm" class="md:hidden p-2.5 text-textMain hover:text-primary hover:bg-slate-100 rounded-full transition-all">
+                        <i data-lucide="search" class="w-5 h-5"></i>
+                    </button>
+
+                    <!-- Wishlist Button -->
+                    <a href="#" class="relative p-2.5 text-textMain hover:text-primary hover:bg-slate-100 rounded-full transition-all duration-200 active:scale-95 group" title="Danh sách yêu thích">
+                        <i data-lucide="heart" class="w-5 h-5 transition-transform group-hover:scale-110"></i>
+                        <!-- Badge -->
+                        <span class="absolute top-1 right-1 min-w-[18px] h-[18px] bg-primary text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 border-2 border-white animate-badge-pop">
+                            3
+                        </span>
+                    </a>
+
+                    <!-- Cart Button -->
+                    <a href="#" class="relative p-2.5 text-textMain hover:text-primary hover:bg-slate-100 rounded-full transition-all duration-200 active:scale-95 group" title="Giỏ hàng">
+                        <i data-lucide="shopping-cart" class="w-5 h-5 transition-transform group-hover:scale-110"></i>
+                        <!-- Badge -->
+                        <span class="absolute top-1 right-1 min-w-[18px] h-[18px] bg-danger text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 border-2 border-white animate-badge-pop">
+                            5
+                        </span>
+                    </a>
+
+                    <!-- Divider -->
+                    <div class="h-6 w-[1px] bg-borderColor mx-1 hidden sm:block"></div>
+
+                    <!-- User Account / Dropdown -->
+                    <div class="relative" id="user-menu-container">
+                        
+                        <!-- TRẠNG THÁI: ĐÃ ĐĂNG NHẬP (Mặc định hiển thị) -->
+                        <button id="user-menu-btn" class="flex items-center gap-2 p-1.5 rounded-full hover:bg-slate-100 transition-all focus:outline-none active:scale-95">
+                            <img 
+                                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120" 
+                                alt="User Avatar" 
+                                class="w-8 h-8 rounded-full object-cover ring-2 ring-primary/20"
+                            >
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-textSub hidden sm:block"></i>
+                        </button>
+
+                        <!-- User Dropdown Menu -->
+                        <div id="user-dropdown" class="dropdown-menu opacity-0 invisible scale-95 absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-dropdown border border-borderColor py-2 z-50 transform origin-top-right transition-all duration-200">
+                            <!-- User Info Header -->
+                            <div class="px-4 py-2.5 border-b border-borderColor/60 mb-1">
+                                <p class="text-sm font-bold text-textMain truncate">Nguyễn Văn A</p>
+                                <p class="text-xs text-textSub truncate font-normal">user@techshop.vn</p>
+                            </div>
+
+                            <!-- Menu Links -->
+                            <a href="#" class="flex items-center gap-3 px-4 py-2 text-sm font-medium text-textMain hover:bg-slate-50 hover:text-primary transition-colors">
+                                <i data-lucide="user" class="w-4 h-4 text-textSub"></i>
+                                Hồ sơ cá nhân
+                            </a>
+                            <a href="#" class="flex items-center gap-3 px-4 py-2 text-sm font-medium text-textMain hover:bg-slate-50 hover:text-primary transition-colors">
+                                <i data-lucide="package" class="w-4 h-4 text-textSub"></i>
+                                Đơn hàng của tôi
+                            </a>
+                            <a href="#" class="flex items-center gap-3 px-4 py-2 text-sm font-medium text-textMain hover:bg-slate-50 hover:text-primary transition-colors">
+                                <i data-lucide="heart" class="w-4 h-4 text-textSub"></i>
+                                Sản phẩm yêu thích
+                            </a>
+
+                            <!-- Admin Section (Nếu là Admin) -->
+                            <div class="border-t border-borderColor/60 my-1"></div>
+                            <a href="#" class="flex items-center gap-3 px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/5 transition-colors">
+                                <i data-lucide="layout-dashboard" class="w-4 h-4 text-primary"></i>
+                                Trang Quản trị (Admin)
+                            </a>
+
+                            <div class="border-t border-borderColor/60 my-1"></div>
+                            <!-- Logout Button -->
+                            <button class="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-danger hover:bg-red-50 transition-colors">
+                                <i data-lucide="log-out" class="w-4 h-4 text-danger"></i>
+                                Đăng xuất
+                            </button>
+                        </div>
+
+                        <!-- TRẠNG THÁI: CHƯA ĐĂNG NHẬP (Ẩn mặc định, bật lại bằng JS/Class nếu cần) -->
+                        <div class="hidden items-center gap-2">
+                            <a href="#" class="px-4 py-2 text-sm font-semibold text-textMain hover:text-primary transition-colors">
+                                Đăng nhập
+                            </a>
+                            <a href="#" class="px-4 py-2 text-sm font-semibold text-white bg-primary hover:bg-primary-hover rounded-full shadow-sm hover:scale-[1.02] active:scale-95 transition-all">
+                                Đăng ký
+                            </a>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <!-- MOBILE SEARCH BAR (Xuất hiện dưới Navbar chính khi bấm Icon Search ở Mobile) -->
+        <div id="mobile-search-bar" class="hidden md:hidden px-4 pb-3 pt-1 border-t border-borderColor/50">
+            <div class="relative w-full">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-textSub">
+                    <i data-lucide="search" class="w-4 h-4"></i>
+                </div>
+                <input 
+                    type="text" 
+                    placeholder="Tìm kiếm laptop, bàn phím, chuột..." 
+                    class="w-full pl-10 pr-4 py-2 bg-pageBg text-textMain placeholder-textSub text-sm font-medium rounded-full border border-borderColor focus:outline-none focus:border-primary"
+                >
+            </div>
+        </div>
+
+        <!-- CATEGORIES SUB-NAVBAR (Desktop Only >= 1024px) -->
+        <nav class="hidden lg:block border-t border-borderColor/60 bg-white">
+            <div class="max-w-7xl mx-auto px-8">
+                <ul class="flex items-center justify-between h-11 text-sm font-medium text-textMain">
+                    <li>
+                        <a href="#" class="nav-link-underline py-2.5 hover:text-primary transition-colors">Laptop</a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link-underline py-2.5 hover:text-primary transition-colors">PC Gaming</a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link-underline py-2.5 hover:text-primary transition-colors">Màn hình</a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link-underline py-2.5 hover:text-primary transition-colors">Chuột</a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link-underline py-2.5 hover:text-primary transition-colors">Bàn phím</a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link-underline py-2.5 hover:text-primary transition-colors">Tai nghe</a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link-underline py-2.5 hover:text-primary transition-colors">Linh kiện</a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link-underline py-2.5 hover:text-primary transition-colors">Phụ kiện</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+    </header>
+    <!-- ==================== HEADER / NAVBAR END ==================== -->
+
+
+    <!-- ==================== MOBILE DRAWER MENU START ==================== -->
+    <div id="drawer-container" class="relative z-50 lg:hidden" aria-modal="true" role="dialog">
+        
+        <!-- Backdrop Overlay -->
+        <div id="drawer-overlay" class="drawer-overlay fixed inset-0 bg-slate-900/40 backdrop-blur-sm opacity-0 invisible pointer-events-none"></div>
+
+        <!-- Drawer Panel -->
+        <div class="fixed inset-y-0 left-0 flex max-w-full">
+            <div id="drawer-content" class="drawer-content w-screen max-w-xs sm:max-w-sm bg-white shadow-2xl flex flex-col -translate-x-full">
+                
+                <!-- Drawer Header -->
+                <div class="p-5 border-b border-borderColor flex items-center justify-between">
+                    <a href="#" class="flex items-center gap-2">
+                        <div class="w-9 h-9 rounded-lg bg-primary flex items-center justify-center text-white">
+                            <i data-lucide="cpu" class="w-5 h-5"></i>
+                        </div>
+                        <span class="text-lg font-bold text-textMain">Tech<span class="text-primary">Shop</span></span>
+                    </a>
+                    <button id="drawer-close-btn" class="p-2 rounded-full text-textSub hover:text-textMain hover:bg-slate-100 transition-colors">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <!-- Drawer Scrollable Content -->
+                <div class="flex-1 overflow-y-auto custom-scrollbar p-5 space-y-6">
+                    
+                    <!-- Quick Account Section inside Mobile Drawer -->
+                    <div class="p-3.5 bg-pageBg rounded-2xl border border-borderColor flex items-center gap-3">
+                        <img 
+                            src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120" 
+                            alt="Avatar" 
+                            class="w-10 h-10 rounded-full object-cover ring-2 ring-primary/20"
+                        >
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-bold text-textMain truncate">Nguyễn Văn A</p>
+                            <p class="text-xs text-textSub truncate">user@techshop.vn</p>
+                        </div>
+                    </div>
+
+                    <!-- Navigation Links -->
+                    <div class="space-y-1">
+                        <p class="px-3 text-xs font-semibold text-textSub uppercase tracking-wider mb-2">Trang chính</p>
+                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-primary bg-primary/5">
+                            <i data-lucide="home" class="w-4 h-4"></i>
+                            Trang chủ
+                        </a>
+                        <a href="#" class="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium text-textMain hover:bg-slate-50 transition-colors">
+                            <span class="flex items-center gap-3">
+                                <i data-lucide="heart" class="w-4 h-4 text-textSub"></i>
+                                Yêu thích
+                            </span>
+                            <span class="bg-primary/10 text-primary text-xs font-bold px-2 py-0.5 rounded-full">3</span>
+                        </a>
+                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-textMain hover:bg-slate-50 transition-colors">
+                            <i data-lucide="package" class="w-4 h-4 text-textSub"></i>
+                            Đơn hàng của tôi
+                        </a>
+                    </div>
+
+                    <!-- Categories Section -->
+                    <div class="space-y-1">
+                        <p class="px-3 text-xs font-semibold text-textSub uppercase tracking-wider mb-2">Danh mục sản phẩm</p>
+                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-textMain hover:bg-slate-50 transition-colors">
+                            <i data-lucide="laptop" class="w-4 h-4 text-textSub"></i>
+                            Laptop
+                        </a>
+                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-textMain hover:bg-slate-50 transition-colors">
+                            <i data-lucide="monitor" class="w-4 h-4 text-textSub"></i>
+                            PC Gaming & Màn hình
+                        </a>
+                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-textMain hover:bg-slate-50 transition-colors">
+                            <i data-lucide="mouse" class="w-4 h-4 text-textSub"></i>
+                            Chuột máy tính
+                        </a>
+                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-textMain hover:bg-slate-50 transition-colors">
+                            <i data-lucide="keyboard" class="w-4 h-4 text-textSub"></i>
+                            Bàn phím cơ
+                        </a>
+                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-textMain hover:bg-slate-50 transition-colors">
+                            <i data-lucide="headphones" class="w-4 h-4 text-textSub"></i>
+                            Tai nghe & Âm thanh
+                        </a>
+                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-textMain hover:bg-slate-50 transition-colors">
+                            <i data-lucide="hard-drive" class="w-4 h-4 text-textSub"></i>
+                            Linh kiện PC
+                        </a>
+                    </div>
+
+                    <!-- Admin Link (If Admin) -->
+                    <div class="space-y-1 pt-2 border-t border-borderColor">
+                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-primary hover:bg-primary/5 transition-colors">
+                            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                            Quản trị viên (Dashboard)
+                        </a>
+                    </div>
+
+                </div>
+
+                <!-- Drawer Footer -->
+                <div class="p-5 border-t border-borderColor">
+                    <button class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-danger bg-red-50 hover:bg-red-100 transition-colors">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                        Đăng xuất
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <!-- ==================== MOBILE DRAWER MENU END ==================== -->
+
+
+    <!-- DEMO PAGE BODY CONTENT (Giúp quan sát độ tương phản & Shadow) -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div class="border-2 border-dashed border-borderColor rounded-3xl p-8 text-center bg-white shadow-soft">
+            <h1 class="text-2xl font-bold text-textMain mb-2">Giao diện mẫu Website Thương Mại Điện Tử</h1>
+            <p class="text-textSub text-sm max-w-lg mx-auto mb-6">Navbar được thiết kế tối giản, hiện đại, chuẩn UI/UX theo xu hướng 2025. Thử co giãn trình duyệt hoặc bấm vào các nút biểu tượng để trải nghiệm.</p>
+            <div class="inline-flex gap-3">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-primary border border-blue-100">
+                    <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Tailwind CSS
+                </span>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-success border border-emerald-100">
+                    <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Fully Responsive
+                </span>
+            </div>
+        </div>
+    </main>
+
+
+    <!-- ==================== JAVASCRIPT INTERACTION ==================== -->
+    <script>
+        // Khởi tạo Lucide Icons
+        lucide.createIcons();
+
+        // DOM Elements
+        const userMenuBtn = document.getElementById('user-menu-btn');
+        const userDropdown = document.getElementById('user-dropdown');
+        const hamburgerBtn = document.getElementById('hamburger-btn');
+        const drawerCloseBtn = document.getElementById('drawer-close-btn');
+        const drawerOverlay = document.getElementById('drawer-overlay');
+        const drawerContent = document.getElementById('drawer-content');
+        const mobileSearchBtn = document.getElementById('mobile-search-btn');
+        const mobileSearchBar = document.getElementById('mobile-search-bar');
+
+        // 1. User Dropdown Toggle
+        if (userMenuBtn && userDropdown) {
+            userMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isExpanded = userDropdown.classList.contains('opacity-100');
+                if (isExpanded) {
+                    closeUserDropdown();
+                } else {
+                    openUserDropdown();
+                }
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!userDropdown.contains(e.target) && !userMenuBtn.contains(e.target)) {
+                    closeUserDropdown();
+                }
+            });
+        }
+
+        function openUserDropdown() {
+            userDropdown.classList.remove('opacity-0', 'invisible', 'scale-95');
+            userDropdown.classList.add('opacity-100', 'visible', 'scale-100');
+        }
+
+        function closeUserDropdown() {
+            userDropdown.classList.remove('opacity-100', 'visible', 'scale-100');
+            userDropdown.classList.add('opacity-0', 'invisible', 'scale-95');
+        }
+
+        // 2. Mobile Drawer Menu Toggle
+        function openDrawer() {
+            drawerOverlay.classList.remove('opacity-0', 'invisible', 'pointer-events-none');
+            drawerOverlay.classList.add('opacity-100', 'visible');
+            
+            drawerContent.classList.remove('-translate-x-full');
+            drawerContent.classList.add('translate-x-0');
+            document.body.style.overflow = 'hidden'; // Ngăn scroll body khi mở menu
+        }
+
+        function closeDrawer() {
+            drawerOverlay.classList.remove('opacity-100', 'visible');
+            drawerOverlay.classList.add('opacity-0', 'invisible', 'pointer-events-none');
+            
+            drawerContent.classList.remove('translate-x-0');
+            drawerContent.classList.add('-translate-x-full');
+            document.body.style.overflow = '';
+        }
+
+        hamburgerBtn?.addEventListener('click', openDrawer);
+        drawerCloseBtn?.addEventListener('click', closeDrawer);
+        drawerOverlay?.addEventListener('click', closeDrawer);
+
+        // 3. Mobile Search Toggle
+        mobileSearchBtn?.addEventListener('click', () => {
+            mobileSearchBar.classList.toggle('hidden');
+        });
+    </script>
+</body>
+</html>
