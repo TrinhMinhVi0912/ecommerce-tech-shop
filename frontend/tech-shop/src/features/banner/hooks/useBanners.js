@@ -15,8 +15,6 @@ export default function useBanners() {
 
                 const response = await bannerApi.getActive();
                 // response.data = { success, message, data: { items: [...] } }
-                console.log(response);
-                console.log(response.data);
                 setData(response.data);
 
             } catch (err) {

@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+// src/components/layout/Navbar.jsx
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Laptop, Search, Heart, ShoppingCart } from 'lucide-react';
+import useCartStore from '@/store/cartStore';
+import { useAuth } from '@/context/AuthContext';
 
 import useCategories from '../../features/category/hooks/useCategories';
 import useBrands from '../../features/brand/hooks/useBrands';
-import useCart from '../../features/cart/hooks/useCart';
 
 import MegaNavDropdown from './MegaNavDropdown';
 import UserMenuDropdown from './UserMenuDropdown';
@@ -14,20 +16,19 @@ const Navbar = () => {
 
   const { data: categoriesData } = useCategories();
   const { data: brandsData } = useBrands();
-  const { data: cartData } = useCart();
 
-  // API trả về ApiResponse → data.items
-  const categoryItems = (categoriesData?.data?.items ?? []).map((c) => ({
-    id: c.categoryId,
-    name: c.name,
-  }));
+  const { totalItems, fetchCart } = useCartStore();
+  const { isAuthenticated } = useAuth();
 
-  const brandItems = (brandsData?.data?.items ?? []).map((b) => ({
-    id: b.brandId,
-    name: b.name,
-  }));
+  // Fetch cart khi đăng nhập
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchCart();
+    }
+  }, [isAuthenticated, fetchCart]);
 
-  const totalCartItems = cartData?.data?.totalItems ?? 0;
+  const categoryItems = categoriesData?.data?.items ?? [];
+  const brandItems = brandsData?.data?.items ?? [];
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-200 shadow-sm">
@@ -56,25 +57,24 @@ const Navbar = () => {
           </div>
 
           {/* Menu Links + Hover Dropdowns */}
-          {/* Thêm class "static" vào thẻ nav */}
           <nav className="flex items-center space-x-4 text-xs font-medium">
             <Link to="/" className="text-blue-600 font-semibold hover:text-blue-700">
               Trang chủ
             </Link>
-            <Link to="/product" className="text-blue-600 font-semibold hover:text-blue-700">
+            <Link to="/products" className="text-blue-600 font-semibold hover:text-blue-700">
               Sản phẩm
             </Link>
             <MegaNavDropdown
               label="Danh mục"
               items={categoryItems}
               linkPrefix="/products"
-              queryParam="category"
+              queryParam="categoryId"
             />
             <MegaNavDropdown
               label="Thương hiệu"
               items={brandItems}
               linkPrefix="/products"
-              queryParam="brand"
+              queryParam="brandId"
             />
           </nav>
 
@@ -96,14 +96,14 @@ const Navbar = () => {
               title="Giỏ hàng"
             >
               <ShoppingCart className="w-4 h-4" />
-              {totalCartItems > 0 && (
+              {isAuthenticated && totalItems > 0 && (
                 <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                  {totalCartItems}
+                  {totalItems}
                 </span>
               )}
             </Link>
 
-            {/* Avatar → hover hiện menu user */}
+            {/* Avatar → hover hiển thị menu user */}
             <UserMenuDropdown />
           </div>
         </div>
@@ -137,14 +137,13 @@ const Navbar = () => {
             </Link>
             <Link to="/cart" className="relative p-1 text-gray-600">
               <ShoppingCart className="w-4 h-4" />
-              {totalCartItems > 0 && (
+              {isAuthenticated && totalItems > 0 && (
                 <span className="absolute -top-1 -right-1 min-w-[14px] h-3.5 px-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
-                  {totalCartItems}
+                  {totalItems}
                 </span>
               )}
             </Link>
 
-            {/* Mobile: dùng lại UserMenuDropdown (nên thêm click thay hover) */}
             <UserMenuDropdown size="sm" />
           </div>
         </div>

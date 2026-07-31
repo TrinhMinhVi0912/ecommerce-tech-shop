@@ -11,6 +11,9 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import com.trinhminhvi.techshop.security.JwtAuthenticationFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,8 +30,7 @@ public class SecurityConfig {
             "/images/**",
             "/brands/**",
             "/categories/**",
-            "/review/**",
-
+            "/products/*/*",
     };
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -44,10 +46,21 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                
+                // CSRF
+                .csrf(csrf -> csrf.disable())
+                
+                // Session
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                
+                // Authorize
                 .authorizeHttpRequests(auth -> auth
-
                         // Public
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
+                        
+                        // OPTIONS requests - cho phép tất cả (CORS preflight)
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         // Admin
                         .requestMatchers("/admin/**").hasRole("ADMIN")
@@ -64,14 +77,7 @@ public class SecurityConfig {
                         // Các endpoint còn lại
                         .anyRequest().authenticated());
 
-        httpSecurity.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-
-        // httpSecurity.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer ->
-        // jwtConfigurer.decoder(jwtDecoder())));
-
-        httpSecurity.csrf(AbstractHttpConfigurer -> AbstractHttpConfigurer.disable());
-        
-
+        // Add JWT filter
         httpSecurity.addFilterBefore(
                 jwtAuthenticationFilter,
                 UsernamePasswordAuthenticationFilter.class);
@@ -79,14 +85,39 @@ public class SecurityConfig {
         return httpSecurity.build();
     }
 
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        
+        // Cho phép frontend
+        configuration.addAllowedOrigin("http://localhost:5173");
+        configuration.addAllowedOrigin("http://localhost:3000"); // Nếu dùng port khác
+        
+        // Cho phép tất cả methods
+        configuration.addAllowedMethod("*");
+        
+        // Cho phép tất cả headers
+        configuration.addAllowedHeader("*");
+        
+        // Cho phép gửi credentials (cookie, authorization header)
+        configuration.setAllowCredentials(true);
+        
+        // Cache preflight request trong 1 giờ
+        configuration.setMaxAge(3600L);
+        
+        // Áp dụng cho tất cả endpoints
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        
+        return source;
+    }
+
     // @Bean
     // JwtDecoder jwtDecoder(){
-    // SecretKeySpec secretKeySpec = new
-    // SecretKeySpec(secretKey.getBytes(),"HS256");
-    // return NimbusJwtDecoder
-    // .withSecretKey(secretKeySpec)
-    // .macAlgorithm(MacAlgorithm.HS256)
-    // .build();
+    //     SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getBytes(), "HS256");
+    //     return NimbusJwtDecoder
+    //             .withSecretKey(secretKeySpec)
+    //             .macAlgorithm(MacAlgorithm.HS256)
+    //             .build();
     // }
-
 }

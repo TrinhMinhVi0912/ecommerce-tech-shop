@@ -1,3 +1,4 @@
+// src/features/auth/api/authApi.js
 import axiosClient from "../../../services/axiosClient";
 
 const authApi = {
@@ -12,6 +13,14 @@ const authApi = {
 
     logout: () => {
         return axiosClient.post("/auth/logout");
+    },
+
+    introspect: () => {
+        return axiosClient.post("/auth/introspect");
+    },
+
+    getCurrentUser: () => {
+        return axiosClient.get("/auth/me");
     }
 
 };

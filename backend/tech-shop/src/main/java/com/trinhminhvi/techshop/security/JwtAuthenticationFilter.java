@@ -31,6 +31,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain)
             throws ServletException, IOException {
 
+        // CorsFilter đã xử lý CORS, nhưng vẫn nên bỏ qua OPTIONS để tránh lỗi
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String authHeader = request.getHeader("Authorization");
 
         // Không có token -> cho request đi tiếp
@@ -104,13 +110,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
 
         String path = request.getServletPath();
+        String method = request.getMethod();
 
-        return path.startsWith("/auth/")
-                || path.startsWith("/products")
-                || path.startsWith("/brands")
-                || path.startsWith("/categories")
-                || path.startsWith("/images")
-                || path.startsWith("/banners")
-                || path.startsWith("/review");
+        if ("OPTIONS".equalsIgnoreCase(method)) {
+            return true;
+        }
+
+    return path.equals("/auth/login") 
+            || path.equals("/auth/register")
+            || path.startsWith("/products")
+            || path.startsWith("/brands")
+            || path.startsWith("/categories")
+            || path.startsWith("/images")
+            || path.startsWith("/banners");
     }
 }

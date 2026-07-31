@@ -14,5 +14,4 @@ import lombok.Setter;
 public class UpdateProfileUserRequest {
     private String fullName;
     private String phone;
-    private String avatarPath;
 }

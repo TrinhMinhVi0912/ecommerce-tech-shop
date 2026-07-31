@@ -1,7 +1,9 @@
 package com.trinhminhvi.techshop.auth.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,6 +15,9 @@ import com.trinhminhvi.techshop.auth.dto.response.LoginResponse;
 import com.trinhminhvi.techshop.auth.dto.response.RegisterResponse;
 import com.trinhminhvi.techshop.auth.service.AuthService;
 import com.trinhminhvi.techshop.common.ApiResponse;
+import com.trinhminhvi.techshop.security.CustomUserDetails;
+import com.trinhminhvi.techshop.user.dto.response.UserDetailResponse;
+import com.trinhminhvi.techshop.user.dto.response.UserResponse;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -77,5 +82,17 @@ public class AuthController {
                 .message("Token is valid")
                 .build();
     }
+
+     @GetMapping("/me")
+    public ApiResponse<UserDetailResponse> getCurrentUser(
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
+
+        return ApiResponse.<UserDetailResponse>builder()
+                .success(true)
+                .message("Get current user successfully")
+                .data(authService.getCurrentUser(currentUser.getUserId()))
+                .build();
+    }
+
 
 }

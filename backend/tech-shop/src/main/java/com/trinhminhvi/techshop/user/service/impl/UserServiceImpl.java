@@ -104,7 +104,6 @@ public class UserServiceImpl implements UserService {
     public UpdateProfileResponse updateInfo(UpdateProfileUserRequest updateProfileUserRequest, String userId) {
         User user = userRepository.findById(userId).orElseThrow(
                 () -> new RuntimeException("User Not Found"));
-        user.setAvatarPath(updateProfileUserRequest.getAvatarPath());
         user.setFullName(updateProfileUserRequest.getFullName());
         user.setPhone(updateProfileUserRequest.getPhone());
 

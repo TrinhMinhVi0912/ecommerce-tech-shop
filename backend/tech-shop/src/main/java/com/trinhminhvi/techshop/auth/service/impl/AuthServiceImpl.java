@@ -15,6 +15,8 @@ import com.trinhminhvi.techshop.auth.entity.InvalidToken;
 import com.trinhminhvi.techshop.auth.repository.InvalidTokenRepository;
 import com.trinhminhvi.techshop.auth.service.AuthService;
 import com.trinhminhvi.techshop.security.JwtService;
+import com.trinhminhvi.techshop.user.dto.response.UserDetailResponse;
+import com.trinhminhvi.techshop.user.dto.response.UserResponse;
 import com.trinhminhvi.techshop.user.entity.Role;
 import com.trinhminhvi.techshop.user.entity.User;
 import com.trinhminhvi.techshop.user.mapper.UserMapper;
@@ -74,7 +76,7 @@ public class AuthServiceImpl implements AuthService {
     public LoginResponse login(LoginRequest request) {
         User user = userRepository.findByUserName(request.getUserName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        if(!user.isEnabled()){
+        if (!user.isEnabled()) {
             throw new RuntimeException("Tài khoản đã bị khóa");
         }
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
@@ -89,8 +91,6 @@ public class AuthServiceImpl implements AuthService {
                 .token(token)
                 .build();
     }
-
-    
 
     @Override
     public void logout(String token) {
@@ -115,8 +115,26 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public boolean introspectToken(String token){
+    public boolean introspectToken(String token) {
         return jwtService.validateToken(token);
+    }
+
+    public UserDetailResponse getCurrentUser(String userId) {
+        // Lấy user từ token đã được xác thực
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Map sang response
+        UserDetailResponse userResponse = UserDetailResponse.builder()
+                .userId(user.getUserId())
+                .userName(user.getUserName())
+                .email(user.getEmail())
+                .fullName(user.getFullName())
+                .phone(user.getPhone())
+                .role(user.getRole().getName())
+                .avatarUrl(user.getAvatarPath())
+                .build();
+        return userResponse;
     }
 
 }

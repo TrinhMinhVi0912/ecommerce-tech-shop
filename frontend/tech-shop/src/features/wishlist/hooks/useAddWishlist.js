@@ -1,45 +1,34 @@
 import { useState } from "react";
 import wishlistApi from "../api/wishlistApi";
 
-export default function useAddWishlist() {
-
-    const [data, setData] = useState(null);
+export default function useAddToWishlist() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [data, setData] = useState(null);
 
-    const addWishlist = async (productId) => {
-
+    const addToWishlist = async (productId) => {
         try {
-
             setLoading(true);
             setError(null);
 
             const response = await wishlistApi.addToWishlist(productId);
+            const responseData = response.data || response;
 
-            setData(response.data);
-
-            return response.data;
-
+            setData(responseData);
+            return responseData;
         } catch (err) {
-
-            console.error("Add Wishlist API Error:", err);
+            console.error("Add to wishlist error:", err);
             setError(err);
-
             throw err;
-
         } finally {
-
             setLoading(false);
-
         }
-
     };
 
     return {
-        addWishlist,
-        data,
+        addToWishlist,
         loading,
-        error
+        error,
+        data
     };
-
 }

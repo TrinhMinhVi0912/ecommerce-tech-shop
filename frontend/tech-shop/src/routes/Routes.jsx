@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import UserLayout from "../layouts/userlayouts/UserLayout";
 import AuthLayout from "../layouts/authlayout/AuthLayout";
 import AdminLayout from "../layouts/adminlayouts/AdminLayout";
+import ProtectedRoute from "./ProtectedRoute";
 
 // User Pages
 import Home from "../pages/home/Home";
@@ -33,15 +34,22 @@ export default function AppRoutes() {
                 <Route element={<UserLayout />}>
                     <Route path="/" element={<Home />} />
 
-                    <Route path="/products" element={<ProductList />} />
+                    <Route
+                        path="/products"
+                        element={<ProductList key={window.location.search} />}
+                    />
+
                     <Route path="/products/:id" element={<ProductDetail />} />
 
                     <Route path="/cart" element={<Cart />} />
                     <Route path="/wishlist" element={<Wishlist />} />
 
-                    <Route path="/profile" element={<Profile />} />
-                    <Route path="/orders" element={<OrderHistory />} />
-                    <Route path="/orders/:id" element={<OrderDetail />} />
+                    {/* Private user routes protected by ProtectedRoute */}
+                    <Route element={<ProtectedRoute />}>
+                        <Route path="/profile" element={<Profile />} />
+                        <Route path="/orders" element={<OrderHistory />} />
+                        <Route path="/orders/:id" element={<OrderDetail />} />
+                    </Route>
                 </Route>
 
                 {/* ================= AUTH ================= */}
@@ -51,8 +59,10 @@ export default function AppRoutes() {
                 </Route>
 
                 {/* ================= ADMIN ================= */}
-                <Route element={<AdminLayout />}>
-                    <Route path="/admin" element={<Dashboard />} />
+                <Route element={<ProtectedRoute allowedRoles={["ADMIN", "Admin"]} />}>
+                    <Route element={<AdminLayout />}>
+                        <Route path="/admin" element={<Dashboard />} />
+                    </Route>
                 </Route>
 
                 {/* ================= 404 ================= */}

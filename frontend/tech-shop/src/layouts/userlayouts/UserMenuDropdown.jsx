@@ -1,129 +1,181 @@
-import { Link, useNavigate } from "react-router-dom";
-import { User, Package, Heart, LogOut, Shield } from "lucide-react";
-import useLogout from "../../features/auth/hooks/useLogout";
-import { getToken, removeToken } from "../../utils/token";
-import { useMemo, useState } from "react";
+// src/components/layout/UserMenuDropdown.jsx
+import React, { useState, useRef, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { User, Settings, LogOut, Heart, ShoppingBag, UserCircle, Shield } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import useLogout from '@/features/auth/hooks/useLogout';
+import { getImageUrl } from '@/utils/imageUtils';
 
-export default function UserMenuDropdown() {
-  const [open, setOpen] = useState(false);
+const UserMenuDropdown = ({ size = 'md' }) => {
+  const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
+  const { user, isAuthenticated, refreshUser } = useAuth();
   const { logout } = useLogout();
 
-  const token = getToken();
-  const isLoggedIn = !!token;
+  const dropdownRef = useRef(null);
+  const timeoutRef = useRef(null);
 
-  const user = useMemo(() => {
-    try {
-      return JSON.parse(localStorage.getItem("user")) || null;
-    } catch {
-      return null;
+  // ✅ Refresh user khi component mount (để đảm bảo avatar mới nhất)
+  useEffect(() => {
+    if (isAuthenticated) {
+      refreshUser();
     }
+  }, [isAuthenticated, refreshUser]);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (e) {
-      console.error(e);
-    } finally {
-      removeToken();
-      localStorage.removeItem("user");
-      navigate("/login", { replace: true });
+  const handleMouseEnter = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
     }
+    setIsOpen(true);
   };
 
-  if (!isLoggedIn) {
+  const handleMouseLeave = () => {
+    timeoutRef.current = setTimeout(() => {
+      setIsOpen(false);
+    }, 200);
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
+    setIsOpen(false);
+  };
+
+  const avatarSize = size === 'sm' ? 'w-8 h-8' : 'w-9 h-9';
+  const textSize = size === 'sm' ? 'text-xs' : 'text-sm';
+
+  console.log('🔍 UserMenuDropdown - isAuthenticated:', isAuthenticated);
+  console.log('🔍 UserMenuDropdown - user:', user);
+
+  // Nếu chưa đăng nhập
+  if (!isAuthenticated) {
     return (
-      <div className="flex items-center gap-2 text-sm">
+      <div className="relative">
         <Link
           to="/login"
-          className="text-slate-600 hover:text-blue-600 transition"
+          className={`flex items-center gap-1.5 ${textSize} text-gray-600 hover:text-blue-600 transition font-medium`}
         >
-          Đăng nhập
-        </Link>
-
-        <Link
-          to="/register"
-          className="px-4 py-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition"
-        >
-          Đăng ký
+          <UserCircle size={size === 'sm' ? 18 : 20} />
+          <span className="hidden sm:inline">Đăng nhập</span>
         </Link>
       </div>
     );
   }
 
+  const avatarUrl = getImageUrl(user?.avatarUrl);
+  const displayName = user?.fullName || user?.userName || 'User';
+  const firstLetter = displayName.charAt(0).toUpperCase();
+  const userRole = user?.role || 'USER';
+
   return (
     <div
+      ref={dropdownRef}
       className="relative"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
-      <button className="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold shadow-sm hover:bg-blue-700 transition">
-        {user?.userName?.charAt(0)?.toUpperCase() || "U"}
+      <button
+        className={`${avatarSize} rounded-full overflow-hidden border-2 border-transparent hover:border-blue-500 transition flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-500 text-white font-semibold cursor-pointer`}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        {avatarUrl ? (
+          <img
+            src={avatarUrl}
+            alt={displayName}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random&size=40`;
+            }}
+          />
+        ) : (
+          <span className={`${size === 'sm' ? 'text-sm' : 'text-base'}`}>
+            {firstLetter}
+          </span>
+        )}
       </button>
 
-      {open && (
-        <div className="absolute right-0 top-full pt-3 z-50">
-          <div className="w-64 rounded-2xl border border-slate-200 bg-white shadow-xl overflow-hidden">
-
-            <div className="px-5 py-4 border-b border-slate-100">
-              <p className="font-semibold text-slate-900 truncate">
-                {user?.userName}
-              </p>
-
-              <p className="text-sm text-slate-500 truncate mt-1">
-                {user?.email}
-              </p>
-
-              <div className="mt-3 inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
-                <Shield className="w-3 h-3" />
-                {user?.role}
-              </div>
+      {isOpen && (
+        <div
+          className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-slate-200 py-2 z-50"
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
+          <div className="px-4 py-3 border-b border-slate-100">
+            <div className="font-medium text-slate-900 truncate">
+              {displayName}
             </div>
-
-            <div className="py-2">
-
-              <Link
-                to="/profile"
-                className="flex items-center gap-3 px-5 py-3 text-sm text-slate-700 hover:bg-slate-50 transition"
-              >
-                <User className="w-4 h-4" />
-                Hồ sơ của tôi
-              </Link>
-
-              <Link
-                to="/orders"
-                className="flex items-center gap-3 px-5 py-3 text-sm text-slate-700 hover:bg-slate-50 transition"
-              >
-                <Package className="w-4 h-4" />
-                Đơn hàng của tôi
-              </Link>
-
-              <Link
-                to="/wishlist"
-                className="flex items-center gap-3 px-5 py-3 text-sm text-slate-700 hover:bg-slate-50 transition"
-              >
-                <Heart className="w-4 h-4" />
-                Danh sách yêu thích
-              </Link>
-
+            <div className="text-xs text-slate-500 truncate">
+              {user?.email}
             </div>
-
-            <div className="border-t border-slate-100 p-2">
-
-              <button
-                onClick={handleLogout}
-                className="w-full rounded-xl flex items-center gap-3 px-3 py-3 text-sm text-red-600 hover:bg-red-50 transition"
-              >
-                <LogOut className="w-4 h-4" />
-                Đăng xuất
-              </button>
-
+            <div className="mt-1">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                {userRole}
+              </span>
             </div>
+          </div>
 
+          <div className="py-1">
+            <Link
+              to="/profile"
+              className="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition"
+              onClick={() => setIsOpen(false)}
+            >
+              <User size={16} />
+              <span>Thông tin cá nhân</span>
+            </Link>
+
+            <Link
+              to="/orders"
+              className="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition"
+              onClick={() => setIsOpen(false)}
+            >
+              <ShoppingBag size={16} />
+              <span>Đơn hàng của tôi</span>
+            </Link>
+
+            <Link
+              to="/wishlist"
+              className="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition"
+              onClick={() => setIsOpen(false)}
+            >
+              <Heart size={16} />
+              <span>Danh sách yêu thích</span>
+            </Link>
+
+            {userRole === 'ADMIN' && (
+              <Link
+                to="/admin"
+                className="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition border-t border-slate-100 mt-1 pt-1"
+                onClick={() => setIsOpen(false)}
+              >
+                <Shield size={16} />
+                <span>Quản trị</span>
+              </Link>
+            )}
+          </div>
+
+          <div className="border-t border-slate-100 pt-1">
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition w-full text-left"
+            >
+              <LogOut size={16} />
+              <span>Đăng xuất</span>
+            </button>
           </div>
         </div>
       )}
     </div>
   );
-}
+};
+
+export default UserMenuDropdown;

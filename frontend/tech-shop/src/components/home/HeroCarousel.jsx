@@ -7,7 +7,6 @@ const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL || 'http://localhost:
 const HeroCarousel = () => {
   const { data, loading, error } = useBanners();
   const [currentIndex, setCurrentIndex] = useState(0);
-  console.log(data);
 
   // Lọc lấy danh sách banner đang active từ data.data.items
   const banners = data?.data?.filter(

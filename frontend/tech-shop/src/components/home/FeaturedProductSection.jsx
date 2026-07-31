@@ -11,7 +11,8 @@ const FeaturedProductSection = () => {
     sortDir: 'DESC',
   });
 
-  const products = data?.data?.items || [];
+  // Lấy dữ liệu từ data đã được xử lý trong hook
+  const products = data?.items || [];
 
   return (
     <section className="mb-12">

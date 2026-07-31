@@ -1,10 +1,10 @@
 import axiosClient from "../../../services/axiosClient";
 
 const productApi = {
-
-    getAll: (params) => {
+    getAll: (params, config = {}) => {
         return axiosClient.get("/products", {
             params,
+            ...config,
         });
     },
 
@@ -20,7 +20,6 @@ const productApi = {
             },
         });
     }
-
 };
 
 export default productApi;

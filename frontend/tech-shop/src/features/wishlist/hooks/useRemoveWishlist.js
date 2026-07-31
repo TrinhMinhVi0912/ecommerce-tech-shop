@@ -1,45 +1,34 @@
 import { useState } from "react";
 import wishlistApi from "../api/wishlistApi";
 
-export default function useRemoveWishlist() {
-
-    const [data, setData] = useState(null);
+export default function useRemoveFromWishlist() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [data, setData] = useState(null);
 
-    const removeWishlist = async (productId) => {
-
+    const removeFromWishlist = async (productId) => {
         try {
-
             setLoading(true);
             setError(null);
 
             const response = await wishlistApi.removeFromWishlist(productId);
+            const responseData = response.data || response;
 
-            setData(response.data);
-
-            return response.data;
-
+            setData(responseData);
+            return responseData;
         } catch (err) {
-
-            console.error("Remove Wishlist API Error:", err);
+            console.error("Remove from wishlist error:", err);
             setError(err);
-
             throw err;
-
         } finally {
-
             setLoading(false);
-
         }
-
     };
 
     return {
-        removeWishlist,
-        data,
+        removeFromWishlist,
         loading,
-        error
+        error,
+        data
     };
-
 }
