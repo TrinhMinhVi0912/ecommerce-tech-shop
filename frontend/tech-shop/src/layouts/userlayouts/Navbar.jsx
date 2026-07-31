@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Laptop, Search, Heart, ShoppingCart } from 'lucide-react';
 import useCartStore from '@/store/cartStore';
+import useWishlistStore from '@/store/wishlistStore'; // ✅ Thêm import
 import { useAuth } from '@/context/AuthContext';
 
 import useCategories from '../../features/category/hooks/useCategories';
@@ -18,14 +19,16 @@ const Navbar = () => {
   const { data: brandsData } = useBrands();
 
   const { totalItems, fetchCart } = useCartStore();
+  const { wishlistCount, fetchWishlistCount } = useWishlistStore(); // ✅ Lấy từ store
   const { isAuthenticated } = useAuth();
 
-  // Fetch cart khi đăng nhập
+  // Fetch cart và wishlist khi đăng nhập
   useEffect(() => {
     if (isAuthenticated) {
       fetchCart();
+      fetchWishlistCount(); // ✅ Fetch số lượng wishlist
     }
-  }, [isAuthenticated, fetchCart]);
+  }, [isAuthenticated, fetchCart, fetchWishlistCount]);
 
   const categoryItems = categoriesData?.data?.items ?? [];
   const brandItems = brandsData?.data?.items ?? [];
@@ -82,14 +85,21 @@ const Navbar = () => {
           <div className="flex items-center space-x-2 pl-1">
             <div className="h-4 w-px bg-gray-200 mr-1" />
 
+            {/* Wishlist với badge số lượng */}
             <Link
               to="/wishlist"
-              className="p-1 text-gray-600 hover:text-blue-600 rounded-full transition"
+              className="relative p-1 text-gray-600 hover:text-blue-600 rounded-full transition"
               title="Danh sách yêu thích"
             >
               <Heart className="w-4 h-4" />
+              {isAuthenticated && wishlistCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {wishlistCount}
+                </span>
+              )}
             </Link>
 
+            {/* Cart với badge số lượng */}
             <Link
               to="/cart"
               className="relative p-1 text-gray-600 hover:text-blue-600 rounded-full transition"
@@ -132,9 +142,17 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-1.5">
-            <Link to="/wishlist" className="p-1 text-gray-600">
+            {/* Wishlist mobile */}
+            <Link to="/wishlist" className="relative p-1 text-gray-600">
               <Heart className="w-4 h-4" />
+              {isAuthenticated && wishlistCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[14px] h-3.5 px-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                  {wishlistCount}
+                </span>
+              )}
             </Link>
+
+            {/* Cart mobile */}
             <Link to="/cart" className="relative p-1 text-gray-600">
               <ShoppingCart className="w-4 h-4" />
               {isAuthenticated && totalItems > 0 && (
