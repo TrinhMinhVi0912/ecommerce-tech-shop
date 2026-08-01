@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,89 +26,108 @@ import com.trinhminhvi.techshop.security.JwtService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.PutMapping;
 
-@RequestMapping("/products/{productId}/reviews")
+@RequestMapping("/reviews")
 @RestController
 @RequiredArgsConstructor
 public class ReviewController {
 
-        private final ReviewService reviewService;
-        private final JwtService jwtService;
-
-        @GetMapping
-        public ApiResponse<ProductReviewResponse> getProductReview(
-                        @PathVariable Integer productId,
-                        @Validated @ModelAttribute GetReviewsRequest getReviewsRequest,
-                        HttpServletRequest httpServletRequest) {
+    private final ReviewService reviewService;
+    private final JwtService jwtService;
 
 
-                // verify pageNum và pageSize
-                int pageNum = (getReviewsRequest.getPageNum() == null || getReviewsRequest.getPageNum() < 1) ?  1 : getReviewsRequest.getPageNum();
-                int pageSize = ( getReviewsRequest.getPageSize() == null || getReviewsRequest.getPageSize() < 1) ? 10 : getReviewsRequest.getPageSize();
+    @GetMapping("/{productId}")
+    public ApiResponse<ProductReviewResponse> getProductReview(
+            @PathVariable Integer productId,
+            @Validated @ModelAttribute GetReviewsRequest getReviewsRequest,
+            HttpServletRequest httpServletRequest) {
 
-                String userId = null;
+        int pageNum = (getReviewsRequest.getPageNum() == null || getReviewsRequest.getPageNum() < 1) ? 1 
+                : getReviewsRequest.getPageNum();
+        int pageSize = (getReviewsRequest.getPageSize() == null || getReviewsRequest.getPageSize() < 1) ? 10 
+                : getReviewsRequest.getPageSize();
 
-                try {
-                        String token = jwtService.extractToken(httpServletRequest);
-                        userId = jwtService.extractUserIdFromToken(token);
-                } catch (Exception e) {
-                        // rỗng cho các trường hợp khách chưa đăng nhập hoặc khách vãng lai => chưa có token trên header bearer
-                }
+        String userId = null;
 
-                getReviewsRequest.setPageNum(pageNum);
-                getReviewsRequest.setPageSize(pageSize);
-
-                return ApiResponse.<ProductReviewResponse>builder()
-                                .success(true)
-                                .message("Get Reviews Successfully")
-                                .data(reviewService.getReview(
-                                                PageRequest.of(getReviewsRequest.getPageNum() - 1,
-                                                                getReviewsRequest.getPageSize()),
-                                                productId,userId))
-                                .build();
+        try {
+            String token = jwtService.extractToken(httpServletRequest);
+            if (token != null && !token.isEmpty()) {
+                userId = jwtService.extractUserIdFromToken(token);
+            }
+        } catch (Exception e) {
+            // Khách chưa đăng nhập hoặc token không hợp lệ
         }
 
-        @PostMapping
-        public ApiResponse<AddReviewResponse> addReview(
-                        @Validated @RequestBody AddReviewRequest addReviewRequest,
-                        @PathVariable Integer productId,
-                        @AuthenticationPrincipal CustomUserDetails currentUser) {
+        getReviewsRequest.setPageNum(pageNum);
+        getReviewsRequest.setPageSize(pageSize);
 
-                return ApiResponse.<AddReviewResponse>builder()
-                                .success(true)
-                                .message("Add Review Successfully")
-                                .data(reviewService.addReview(currentUser.getUserId(), productId, addReviewRequest))
-                                .build();
+        return ApiResponse.<ProductReviewResponse>builder()
+                .success(true)
+                .message("Get Reviews Successfully")
+                .data(reviewService.getReview(
+                        PageRequest.of(getReviewsRequest.getPageNum() - 1,
+                                getReviewsRequest.getPageSize()),
+                        productId, userId))
+                .build();
+    }
+
+    @PostMapping("/{productId}")
+    public ApiResponse<AddReviewResponse> addReview(
+            @Validated @RequestBody AddReviewRequest addReviewRequest,
+            @PathVariable Integer productId,
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
+
+        if (currentUser == null) {
+            return ApiResponse.<AddReviewResponse>builder()
+                    .success(false)
+                    .message("User not authenticated. Please login to add review.")
+                    .build();
         }
 
-        @PutMapping
-        public ApiResponse<UpdateReviewResponse> updateReview(
-                        @PathVariable Integer productId,
-                        @Validated @RequestBody UpdateReviewRequest updateReviewRequest,
-                        @AuthenticationPrincipal CustomUserDetails currentUser) {
+        return ApiResponse.<AddReviewResponse>builder()
+                .success(true)
+                .message("Add Review Successfully")
+                .data(reviewService.addReview(currentUser.getUserId(), productId, addReviewRequest))
+                .build();
+    }
 
-                return ApiResponse.<UpdateReviewResponse>builder()
-                                .success(true)
-                                .message("Update review successfully")
-                                .data(reviewService.updateReview(currentUser.getUserId(), productId, updateReviewRequest))
-                                .build();
+    @PutMapping("/{productId}")
+    public ApiResponse<UpdateReviewResponse> updateReview(
+            @PathVariable Integer productId,
+            @Validated @RequestBody UpdateReviewRequest updateReviewRequest,
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
 
+        if (currentUser == null) {
+            return ApiResponse.<UpdateReviewResponse>builder()
+                    .success(false)
+                    .message("User not authenticated. Please login to update review.")
+                    .build();
         }
 
-        @DeleteMapping
-        public ApiResponse<Object> deleteReview(
-                        @PathVariable Integer productId,
-                        @AuthenticationPrincipal CustomUserDetails currentUser) {
+        return ApiResponse.<UpdateReviewResponse>builder()
+                .success(true)
+                .message("Update review successfully")
+                .data(reviewService.updateReview(currentUser.getUserId(), productId, updateReviewRequest))
+                .build();
+    }
 
-                reviewService.deleteReview(currentUser.getUserId(), productId);
+    @DeleteMapping("/{productId}")
+    public ApiResponse<Object> deleteReview(
+            @PathVariable Integer productId,
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
 
-                return ApiResponse.<Object>builder()
+        if (currentUser == null) {
+            return ApiResponse.<Object>builder()
+                    .success(false)
+                    .message("User not authenticated. Please login to delete review.")
+                    .build();
+        }
+
+        reviewService.deleteReview(currentUser.getUserId(), productId);
+
+        return ApiResponse.<Object>builder()
                 .success(true)
                 .message("Delete review successfully")
                 .build();
-        }
-
+    }
 }

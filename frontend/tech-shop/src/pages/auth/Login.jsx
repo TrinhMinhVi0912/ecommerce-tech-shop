@@ -17,8 +17,11 @@ const Login = () => {
     // Trạng thái lỗi client-side
     const [fieldErrors, setFieldErrors] = useState({});
 
+    // ✅ Trạng thái lỗi đăng nhập
+    const [loginError, setLoginError] = useState('');
+
     // Custom hook login
-    const { login, loading, error: backendError } = useLogin();
+    const { login, loading } = useLogin();
 
     // Validate phía client trước khi submit
     const validate = () => {
@@ -38,17 +41,31 @@ const Login = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Reset lỗi cũ
+        setFieldErrors({});
+        setLoginError('');
+
         if (!validate()) return;
 
-        // Truyền đúng payload theo tên trường hệ thống của bạn (username & password)
-        const success = await login({
-            userName,
-            password,
-            rememberMe,
-        });
+        try {
+            const result = await login({
+                userName,
+                password,
+                rememberMe,
+            });
 
-        if (success) {
-            navigate("/", { replace: true });
+            // ✅ Chỉ chuyển hướng khi đăng nhập thành công
+            if (result && result.success) {
+                navigate("/", { replace: true });
+            } else {
+                // ✅ Hiển thị thông báo lỗi chung
+                setLoginError('Tên đăng nhập hoặc mật khẩu không chính xác.');
+            }
+        } catch (error) {
+            // ✅ Bắt lỗi từ hook và hiển thị thông báo chung
+            console.error('Login error:', error);
+            setLoginError('Tên đăng nhập hoặc mật khẩu không chính xác.');
         }
     };
 
@@ -118,14 +135,14 @@ const Login = () => {
                         </p>
                     </div>
 
-                    {/* Alert thông báo lỗi từ Backend */}
-                    {backendError && (
+                    {/* ✅ Alert thông báo lỗi đăng nhập */}
+                    {loginError && (
                         <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 flex items-start space-x-3 text-red-700 text-sm animate-shake">
                             <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
                             <div>
                                 <p className="font-semibold">Đăng nhập thất bại</p>
                                 <p className="mt-0.5 text-xs text-red-600">
-                                    {typeof backendError === 'string' ? backendError : 'Tên đăng nhập hoặc mật khẩu không chính xác.'}
+                                    {loginError}
                                 </p>
                             </div>
                         </div>
@@ -150,19 +167,23 @@ const Login = () => {
                                     value={userName}
                                     onChange={(e) => {
                                         setUserName(e.target.value);
-                                        if (fieldErrors.username) {
-                                            setFieldErrors((prev) => ({ ...prev, username: '' }));
+                                        if (fieldErrors.userName) {
+                                            setFieldErrors((prev) => ({ ...prev, userName: '' }));
+                                        }
+                                        // ✅ Xóa lỗi login khi user nhập lại
+                                        if (loginError) {
+                                            setLoginError('');
                                         }
                                     }}
                                     placeholder="Nhập tên đăng nhập"
-                                    className={`w-full pl-10 pr-4 py-2.5 bg-white border rounded-xl text-slate-800 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 transition-all ${fieldErrors.username
+                                    className={`w-full pl-10 pr-4 py-2.5 bg-white border rounded-xl text-slate-800 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 transition-all ${fieldErrors.userName
                                         ? 'border-red-500 focus:ring-red-200'
                                         : 'border-slate-200 focus:border-[#2563EB] focus:ring-blue-100'
                                         } disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed`}
                                 />
                             </div>
-                            {fieldErrors.username && (
-                                <p className="mt-1.5 text-xs text-red-500 font-medium">{fieldErrors.username}</p>
+                            {fieldErrors.userName && (
+                                <p className="mt-1.5 text-xs text-red-500 font-medium">{fieldErrors.userName}</p>
                             )}
                         </div>
 
@@ -184,6 +205,10 @@ const Login = () => {
                                         setPassword(e.target.value);
                                         if (fieldErrors.password) {
                                             setFieldErrors((prev) => ({ ...prev, password: '' }));
+                                        }
+                                        // ✅ Xóa lỗi login khi user nhập lại
+                                        if (loginError) {
+                                            setLoginError('');
                                         }
                                     }}
                                     placeholder="••••••••"

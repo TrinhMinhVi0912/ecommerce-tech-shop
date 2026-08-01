@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { Star, StarHalf } from "lucide-react";
+// src/components/product/productdetails/ProductReviews.jsx
+import { useState, useMemo } from "react";
+import { useAuth } from "@/context/AuthContext";
 import ReviewItem from "./ReviewItem";
 import ReviewForm from "./ReviewForm";
 import RatingSummary from "./RatingSummary";
@@ -16,8 +17,15 @@ export default function ProductReviews({
     const [showForm, setShowForm] = useState(false);
     const [pageNum, setPageNum] = useState(1);
     const [sortBy, setSortBy] = useState("newest");
+    const { user } = useAuth();
 
     const { averageRating = 0, totalReviews = 0, ratingBreakdown = {} } = summary;
+
+    // ✅ Tìm review của user hiện tại
+    const existingReview = useMemo(() => {
+        if (!user?.userId || !reviews.length) return null;
+        return reviews.find(review => review.user?.userId === user.userId) || null;
+    }, [reviews, user]);
 
     if (loading) {
         return (
@@ -47,19 +55,26 @@ export default function ProductReviews({
 
             {/* Action Buttons */}
             <div className="flex items-center justify-between my-6">
-                <button
-                    onClick={() => setShowForm(!showForm)}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                >
-                    {showForm ? 'Đóng' : 'Viết đánh giá'}
-                </button>
+                {!existingReview && (
+                    <button
+                        onClick={() => setShowForm(!showForm)}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                    >
+                        {showForm ? 'Đóng' : 'Viết đánh giá'}
+                    </button>
+                )}
+                {existingReview && (
+                    <div className="text-sm text-blue-600">
+                        Bạn đã đánh giá sản phẩm này
+                    </div>
+                )}
 
                 <div className="flex gap-2">
                     <button
                         onClick={() => setSortBy("newest")}
                         className={`px-3 py-1 text-sm rounded-lg transition ${sortBy === "newest"
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-slate-100 hover:bg-slate-200'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-slate-100 hover:bg-slate-200'
                             }`}
                     >
                         Mới nhất
@@ -67,8 +82,8 @@ export default function ProductReviews({
                     <button
                         onClick={() => setSortBy("highest")}
                         className={`px-3 py-1 text-sm rounded-lg transition ${sortBy === "highest"
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-slate-100 hover:bg-slate-200'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-slate-100 hover:bg-slate-200'
                             }`}
                     >
                         Đánh giá cao
@@ -76,8 +91,8 @@ export default function ProductReviews({
                     <button
                         onClick={() => setSortBy("lowest")}
                         className={`px-3 py-1 text-sm rounded-lg transition ${sortBy === "lowest"
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-slate-100 hover:bg-slate-200'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-slate-100 hover:bg-slate-200'
                             }`}
                     >
                         Đánh giá thấp
@@ -85,14 +100,15 @@ export default function ProductReviews({
                 </div>
             </div>
 
-            {/* Review Form */}
-            {showForm && (
+            {/* Review Form - chỉ hiển thị khi chưa có review */}
+            {showForm && !existingReview && (
                 <div className="mb-6">
                     <ReviewForm
                         productId={productId}
+                        existingReview={existingReview}
                         onSuccess={() => {
                             setShowForm(false);
-                            onReviewAdded();
+                            if (onReviewAdded) onReviewAdded();
                         }}
                     />
                 </div>
@@ -110,6 +126,7 @@ export default function ProductReviews({
                         <ReviewItem
                             key={review.reviewId}
                             review={review}
+                            productId={productId}
                             onDelete={onReviewDeleted}
                             onUpdate={onReviewUpdated}
                         />

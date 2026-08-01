@@ -4,19 +4,21 @@ import com.trinhminhvi.techshop.dashboard.enums.DashboardPeriod;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 public class OrderStatisticsRequest {
 
     @NotNull
-    private DashboardPeriod type;
+    @Builder.Default
+    private DashboardPeriod type = DashboardPeriod.MONTH;
 
-    private Integer year;
+    @Builder.Default
+    private Integer year = 2026;
 
 }

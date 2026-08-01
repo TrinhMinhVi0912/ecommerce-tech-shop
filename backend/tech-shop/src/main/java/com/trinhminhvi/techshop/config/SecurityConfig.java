@@ -31,6 +31,7 @@ public class SecurityConfig {
             "/brands/**",
             "/categories/**",
             "/products/*/*",
+            "/payment/vnpay/return"
     };
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;

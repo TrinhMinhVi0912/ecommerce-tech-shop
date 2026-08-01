@@ -1,45 +1,37 @@
-import { useEffect, useState } from "react";
+// src/features/order/hooks/useOrderDetail.js
+import { useEffect, useState, useCallback } from "react";
 import orderApi from "../api/orderApi";
 
 export default function useOrderDetail(orderId) {
-
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-
+    const fetchOrderDetail = useCallback(async () => {
         if (!orderId) return;
 
-        const fetchOrderDetail = async () => {
-
-            try {
-
-                const response = await orderApi.getMyOrderDetail(orderId);
-
-                setData(response.data);
-
-            } catch (err) {
-
-                console.error("Order Detail API Error:", err);
-                setError(err);
-
-            } finally {
-
-                setLoading(false);
-
-            }
-
-        };
-
-        fetchOrderDetail();
-
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await orderApi.getOrderDetail(orderId);
+            const responseData = response.data?.data || response.data;
+            setData(responseData);
+        } catch (err) {
+            console.error("Get order detail error:", err);
+            setError(err);
+        } finally {
+            setLoading(false);
+        }
     }, [orderId]);
+
+    useEffect(() => {
+        fetchOrderDetail();
+    }, [fetchOrderDetail]);
 
     return {
         data,
         loading,
-        error
+        error,
+        refetch: fetchOrderDetail
     };
-
 }

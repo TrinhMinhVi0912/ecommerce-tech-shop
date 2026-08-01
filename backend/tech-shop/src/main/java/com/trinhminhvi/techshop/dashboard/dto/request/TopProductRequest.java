@@ -23,18 +23,21 @@ public class TopProductRequest {
      * Bắt buộc với MONTH, QUARTER, YEAR
      * Không dùng nếu sau này bổ sung CUSTOM RANGE
      */
-    private Integer year;
+    @Builder.Default
+    private Integer year = 2026;
 
     /**
      * Chỉ dùng khi type = MONTH
      * Giá trị: 1 - 12
      */
-    private Integer month;
+    @Builder.Default
+    private Integer month = 1;
 
     /**
      * Chỉ dùng khi type = QUARTER
      * Giá trị: 1 - 4
      */
-    private Integer quarter;
+    @Builder.Default
+    private Integer quarter = 1;
 
 }

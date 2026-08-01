@@ -1,3 +1,4 @@
+// src/features/review/hooks/useReviews.js
 import { useEffect, useState } from "react";
 import reviewApi from "../api/reviewApi";
 
@@ -12,8 +13,8 @@ export default function useReviews(productId, params = {}) {
         const fetchReviews = async () => {
             try {
                 setLoading(true);
+                // ✅ GET /reviews/{productId}
                 const response = await reviewApi.getReviews(productId, params);
-                // Lấy dữ liệu từ response.data.data
                 setData(response.data?.data || response.data);
             } catch (err) {
                 console.error("Review API Error:", err);
