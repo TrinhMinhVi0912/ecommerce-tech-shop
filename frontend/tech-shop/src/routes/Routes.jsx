@@ -30,6 +30,10 @@ import Users from '../pages/admin/Users';
 import Coupons from '../pages/admin/Coupon';
 import Banners from '../pages/admin/Banner';
 import Settings from '../pages/admin/Settings';
+import ProductDetailForAdmin from '../pages/admin/ProductDetail';
+import ProductEdit from '../pages/admin/ProductEdit';
+import ProductCreate from '../pages/admin/ProductCreate';
+
 
 // Common
 import NotFound from "../pages/notfound/NotFound";
@@ -76,6 +80,9 @@ export default function AppRoutes() {
                     <Route element={<AdminLayout />}>
                         <Route path="/admin" element={<Dashboard />} />
                         <Route path="/admin/products" element={<Products />} />
+                        <Route path="/admin/products/:id" element={<ProductDetailForAdmin />} />
+                        <Route path="/admin/products/edit/:id" element={<ProductEdit />} />
+                        <Route path="/admin/products/create" element={<ProductCreate />} />
                         <Route path="/admin/orders" element={<Orders />} />
                         <Route path="/admin/users" element={<Users />} />
                         <Route path="/admin/coupons" element={<Coupons />} />

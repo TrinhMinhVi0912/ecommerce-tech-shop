@@ -69,10 +69,9 @@ public class ProductAdminController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<ProductDetailForAdminResponse> createProduct(
             @RequestPart("product") String productJson,
-            @RequestPart("images") List<MultipartFile> images) throws Exception {
+            @RequestPart(value = "images", required = false) List<MultipartFile> images) throws Exception {
 
         ObjectMapper objectMapper = new ObjectMapper();
-
         CreateProductRequest request = objectMapper.readValue(productJson, CreateProductRequest.class);
 
         return ApiResponse.success(
@@ -80,43 +79,19 @@ public class ProductAdminController {
                 "Create Product Successfully");
     }
 
-    // @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    // public ApiResponse<ProductDetailResponse> createProduct(
-    // @RequestPart("product") @Validated CreateProductRequest request,
-    // @RequestPart("images") List<MultipartFile> images) {
-    //
-    // return ApiResponse.success(
-    // productService.createProduct(request, images),
-    // "Create Product Successfully");
-    // }
-
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<ProductDetailForAdminResponse> updateProduct(
             @PathVariable Integer id,
             @RequestPart("product") String productJson,
-            @RequestPart(value = "images", required = false) List<MultipartFile> images)
-            throws Exception {
+            @RequestPart(value = "images", required = false) List<MultipartFile> images) throws Exception {
 
         ObjectMapper objectMapper = new ObjectMapper();
-
         UpdateProductRequest request = objectMapper.readValue(productJson, UpdateProductRequest.class);
 
         return ApiResponse.success(
                 productService.updateProduct(id, request, images),
                 "Update Product Successfully");
     }
-
-    // @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    // public ApiResponse<ProductDetailResponse> updateProduct(
-    // @PathVariable Integer id,
-    // @RequestPart("product") @Validated UpdateProductRequest request,
-    // @RequestPart(value = "images", required = false) List<MultipartFile> images)
-    // {
-    //
-    // return ApiResponse.success(
-    // productService.updateProduct(id, request, images),
-    // "Update Product Successfully");
-    // }
 
     @PatchMapping("/{id}/status")
     public ApiResponse<ProductDetailForAdminResponse> updateProductStatus(

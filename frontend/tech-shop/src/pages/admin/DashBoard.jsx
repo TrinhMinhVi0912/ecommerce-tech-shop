@@ -8,7 +8,8 @@ import {
     RefreshCw,
     BarChart3,
     TrendingUp,
-    ShoppingCart
+    ShoppingCart,
+    ChevronDown
 } from 'lucide-react';
 import useAdminSummary from '@/features/admin/dashboard/hooks/useAdminSummary';
 import useAdminRevenue from '@/features/admin/dashboard/hooks/useAdminRevenue';
@@ -19,15 +20,29 @@ import { getImageUrl } from '@/utils/imageUtils';
 export default function Dashboard() {
     const [timeFilter, setTimeFilter] = useState('MONTH');
     const [activeChart, setActiveChart] = useState('revenue');
-    const [currentYear] = useState(new Date().getFullYear());
+    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+    const [isYearDropdownOpen, setIsYearDropdownOpen] = useState(false);
+
+    // Generate year options (2020 to current year)
+    const currentYear = new Date().getFullYear();
+    const yearOptions = [];
+    for (let year = currentYear; year >= 2020; year--) {
+        yearOptions.push(year);
+    }
 
     // Fetch data
     const { data: summary, loading: summaryLoading, refetch: refetchSummary } = useAdminSummary();
-    const { data: revenue, loading: revenueLoading } = useAdminRevenue({ type: timeFilter, year: currentYear });
-    const { data: orders, loading: ordersLoading } = useAdminOrderStatistics({ type: timeFilter, year: currentYear });
+    const { data: revenue, loading: revenueLoading } = useAdminRevenue({
+        type: timeFilter,
+        year: selectedYear
+    });
+    const { data: orders, loading: ordersLoading } = useAdminOrderStatistics({
+        type: timeFilter,
+        year: selectedYear
+    });
     const { data: topProducts, loading: topProductsLoading } = useAdminTopProducts({
         type: timeFilter,
-        year: currentYear,
+        year: selectedYear,
         month: new Date().getMonth() + 1,
         quarter: Math.ceil((new Date().getMonth() + 1) / 3)
     });
@@ -47,7 +62,7 @@ export default function Dashboard() {
         return new Intl.NumberFormat('vi-VN').format(value || 0);
     };
 
-    // Get current month index
+    // Get current month index (only for MONTH view)
     const currentMonth = new Date().getMonth();
 
     // Get label based on time filter
@@ -74,7 +89,7 @@ export default function Dashboard() {
 
     const chartLabels = getLabels();
 
-    // Stats cards data - remove change percentage
+    // Stats cards data
     const stats = [
         {
             title: 'Tổng doanh thu',
@@ -170,20 +185,50 @@ export default function Dashboard() {
                 </button>
             </div>
 
-            {/* Time Filter */}
-            <div className="flex gap-2 mb-6">
-                {['MONTH', 'QUARTER', 'YEAR'].map((type) => (
+            {/* Time Filter + Year Selector */}
+            <div className="flex flex-wrap items-center gap-3 mb-6">
+                <div className="flex gap-2">
+                    {['MONTH', 'QUARTER', 'YEAR'].map((type) => (
+                        <button
+                            key={type}
+                            onClick={() => setTimeFilter(type)}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${timeFilter === type
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                }`}
+                        >
+                            {type === 'MONTH' ? 'Tháng' : type === 'QUARTER' ? 'Quý' : 'Năm'}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Year Dropdown */}
+                <div className="relative">
                     <button
-                        key={type}
-                        onClick={() => setTimeFilter(type)}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition ${timeFilter === type
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                            }`}
+                        onClick={() => setIsYearDropdownOpen(!isYearDropdownOpen)}
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium hover:border-blue-500 transition"
                     >
-                        {type === 'MONTH' ? 'Tháng' : type === 'QUARTER' ? 'Quý' : 'Năm'}
+                        <span>Năm {selectedYear}</span>
+                        <ChevronDown size={16} className={`transition-transform ${isYearDropdownOpen ? 'rotate-180' : ''}`} />
                     </button>
-                ))}
+                    {isYearDropdownOpen && (
+                        <div className="absolute top-full left-0 mt-1 w-full bg-white border border-slate-200 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                            {yearOptions.map((year) => (
+                                <button
+                                    key={year}
+                                    onClick={() => {
+                                        setSelectedYear(year);
+                                        setIsYearDropdownOpen(false);
+                                    }}
+                                    className={`w-full px-4 py-2 text-sm text-left hover:bg-slate-50 transition ${selectedYear === year ? 'bg-blue-50 text-blue-600 font-medium' : 'text-slate-700'
+                                        }`}
+                                >
+                                    Năm {year}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Stats Grid */}
@@ -223,7 +268,9 @@ export default function Dashboard() {
                         </h3>
                         <div className="flex items-center gap-3">
                             <span className="text-xs text-slate-400">
-                                {timeFilter === 'MONTH' ? 'Tháng này' : timeFilter === 'QUARTER' ? 'Quý này' : 'Năm nay'}
+                                {timeFilter === 'MONTH' ? `Tháng này - ${selectedYear}` :
+                                    timeFilter === 'QUARTER' ? `Quý này - ${selectedYear}` :
+                                        `Năm ${selectedYear}`}
                             </span>
                             {topProducts?.length > 3 && (
                                 <span className="text-xs text-blue-600">
@@ -240,7 +287,7 @@ export default function Dashboard() {
                         </div>
                     ) : topProducts?.length === 0 ? (
                         <div className="text-center py-8 text-slate-500 text-sm">
-                            Chưa có sản phẩm nào được bán
+                            Chưa có sản phẩm nào được bán trong năm {selectedYear}
                         </div>
                     ) : (
                         <div className={`${topProducts?.length > 3 ? 'max-h-[280px] overflow-y-auto pr-2' : ''}`}>
@@ -252,9 +299,9 @@ export default function Dashboard() {
                                             }`}
                                     >
                                         <div className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold text-white flex-shrink-0 ${index === 0 ? 'bg-yellow-500' :
-                                                index === 1 ? 'bg-slate-400' :
-                                                    index === 2 ? 'bg-amber-600' :
-                                                        'bg-slate-300'
+                                            index === 1 ? 'bg-slate-400' :
+                                                index === 2 ? 'bg-amber-600' :
+                                                    'bg-slate-300'
                                             }`}>
                                             {index + 1}
                                         </div>
@@ -303,7 +350,7 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3">
                     <div className="flex items-center gap-6">
                         <h3 className="font-semibold text-slate-900">
-                            Thống kê theo {getTimeLabel().toLowerCase()}
+                            Thống kê theo {getTimeLabel().toLowerCase()} - Năm {selectedYear}
                         </h3>
                     </div>
                     <div className="flex gap-1 bg-slate-100 rounded-lg p-1">
@@ -333,7 +380,7 @@ export default function Dashboard() {
                         <div className="h-64 bg-slate-100 rounded-lg animate-pulse"></div>
                     ) : chartData.data.length === 0 ? (
                         <div className="h-64 flex items-center justify-center text-slate-400 text-sm">
-                            Không có dữ liệu
+                            Không có dữ liệu cho năm {selectedYear}
                         </div>
                     ) : (
                         <div>
@@ -342,7 +389,7 @@ export default function Dashboard() {
                                     const value = item[chartData.valueKey] || 0;
                                     const heightPercent = maxValue > 0 ? (value / maxValue) * 100 : 0;
                                     const displayHeight = value > 0 ? Math.max(heightPercent, 8) : 0;
-                                    const isCurrent = timeFilter === 'MONTH' && index === currentMonth;
+                                    const isCurrent = timeFilter === 'MONTH' && index === currentMonth && selectedYear === new Date().getFullYear();
                                     const isMax = value === maxVal && maxVal > 0;
                                     const isZero = value === 0;
 
@@ -386,7 +433,7 @@ export default function Dashboard() {
 
                             <div className="mt-4 pt-4 border-t border-slate-200 flex justify-between text-sm">
                                 <span className="text-slate-500">
-                                    Tổng {chartData.label.toLowerCase()}
+                                    Tổng {chartData.label.toLowerCase()} - Năm {selectedYear}
                                 </span>
                                 <span className="font-bold text-slate-900">
                                     {chartData.formatValue(chartData.total)}

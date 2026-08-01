@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -954,33 +955,32 @@ public class ProductServiceImpl implements ProductService {
                                 .build();
         }
 
-
         public PageableResponse<List<ProductResponse>> getAllProductForCustomer(Pageable pageable,
                         GetProductsRequest getAllProductRequest) {
                 System.out.println("====================================");
                 System.out.println(getAllProductRequest.getBrandId());
                 System.out.println(getAllProductRequest.getCategoryId());
-                
+
                 // Lấy tất cả category con nếu có categoryId
                 Set<Integer> categoryIds = null;
                 Integer categoryId = getAllProductRequest.getCategoryId();
-                
+
                 if (categoryId != null) {
-                    List<Integer> allCategoryIds = categoryRepository.findAllCategoryIdsByParentId(categoryId);
-                    if (!allCategoryIds.isEmpty()) {
-                        categoryIds = new HashSet<>(allCategoryIds);
-                    } else {
-                        // Nếu không có category con nào, chỉ lấy categoryId gốc
-                        categoryIds = Set.of(categoryId);
-                    }
+                        List<Integer> allCategoryIds = categoryRepository.findAllCategoryIdsByParentId(categoryId);
+                        if (!allCategoryIds.isEmpty()) {
+                                categoryIds = new HashSet<>(allCategoryIds);
+                        } else {
+                                // Nếu không có category con nào, chỉ lấy categoryId gốc
+                                categoryIds = Set.of(categoryId);
+                        }
                 }
-                
+
                 Page<Product> pageProducts = productRepository.searchProduct(
                                 getAllProductRequest.getSearch(),
                                 getAllProductRequest.getMinPrice(),
                                 getAllProductRequest.getMaxPrice(),
                                 getAllProductRequest.getBrandId(),
-                                categoryIds,  // Truyền Set<Integer> thay vì Integer
+                                categoryIds, // Truyền Set<Integer> thay vì Integer
                                 true,
                                 pageable);
 
@@ -1001,54 +1001,65 @@ public class ProductServiceImpl implements ProductService {
                                 .build();
         }
 
-       @Override
-public PageableResponse<List<ProductForAdminResponse>> getAllProductsForAdmin(
-                Pageable pageable,
-                GetProductsRequest request) {
+        @Override
+        public PageableResponse<List<ProductForAdminResponse>> getAllProductsForAdmin(
+                        Pageable pageable,
+                        GetProductsRequest request) {
 
-        // Lấy tất cả category con nếu có categoryId
-        Set<Integer> categoryIds = null;
-        Integer categoryId = request.getCategoryId();
-        
-        if (categoryId != null) {
-            List<Integer> allCategoryIds = categoryRepository.findAllCategoryIdsByParentId(categoryId);
-            if (!allCategoryIds.isEmpty()) {
-                categoryIds = new HashSet<>(allCategoryIds);
-            } else {
-                // Nếu không có category con nào, chỉ lấy categoryId gốc
-                categoryIds = Set.of(categoryId);
-            }
+                // Lấy tất cả category con nếu có categoryId
+                Set<Integer> categoryIds = null;
+                Integer categoryId = request.getCategoryId();
+
+                if (categoryId != null) {
+                        List<Integer> allCategoryIds = categoryRepository.findAllCategoryIdsByParentId(categoryId);
+                        if (!allCategoryIds.isEmpty()) {
+                                categoryIds = new HashSet<>(allCategoryIds);
+                        } else {
+                                // Nếu không có category con nào, chỉ lấy categoryId gốc
+                                categoryIds = Set.of(categoryId);
+                        }
+                }
+
+                String sortBy = "productId";
+                String sortDir = "DESC";
+
+                if (pageable.getSort() != null && pageable.getSort().isSorted()) {
+                        // Lấy field sort đầu tiên
+                        Sort.Order order = pageable.getSort().iterator().next();
+                        sortBy = order.getProperty();
+                        sortDir = order.getDirection().name();
+                }
+
+                Page<Product> pageProducts = productRepository.searchProduct(
+                                request.getSearch(),
+                                request.getMinPrice(),
+                                request.getMaxPrice(),
+                                request.getBrandId(),
+                                categoryIds, // Truyền Set<Integer> thay vì Integer
+                                request.getIsActive(),
+                                pageable);
+
+                List<ProductForAdminResponse> listProductForAdminResponse = pageProducts.getContent()
+                                .stream()
+                                .map(product -> {
+                                        ProductForAdminResponse productResponse = productMapper
+                                                        .toProductForAdminResponse(product);
+                                        productResponse.setIsActive(product.getIsActive());
+                                        productResponse.setThumbnailImagePath(
+                                                        product.getThumbnailPath());
+
+                                        return productResponse;
+                                })
+                                .toList();
+
+                return PageableResponse.<List<ProductForAdminResponse>>builder()
+                                .pageNum(request.getPageNum())
+                                .pageSize(request.getPageSize())
+                                .totalElements(pageProducts.getTotalElements())
+                                .totalPages(pageProducts.getTotalPages())
+                                .items(listProductForAdminResponse)
+                                .build();
         }
-
-        Page<Product> pageProducts = productRepository.searchProduct(
-                        request.getSearch(),
-                        request.getMinPrice(),
-                        request.getMaxPrice(),
-                        request.getBrandId(),
-                        categoryIds,  // Truyền Set<Integer> thay vì Integer
-                        request.getIsActive(),
-                        pageable);
-
-        List<ProductForAdminResponse> listProductForAdminResponse = pageProducts.getContent()
-                        .stream()
-                        .map(product -> {
-                                ProductForAdminResponse productResponse = productMapper.toProductForAdminResponse(product);
-                                productResponse.setIsActive(product.getIsActive());
-                                productResponse.setThumbnailImagePath(
-                                                product.getThumbnailPath());
-
-                                return productResponse;
-                        })
-                        .toList();
-
-        return PageableResponse.<List<ProductForAdminResponse>>builder()
-                        .pageNum(request.getPageNum())
-                        .pageSize(request.getPageSize())
-                        .totalElements(pageProducts.getTotalElements())
-                        .totalPages(pageProducts.getTotalPages())
-                        .items(listProductForAdminResponse)
-                        .build();
-}       
 
         @Override
         public ProductDetailResponse getProductByIdForCustomer(Integer id) {
@@ -1080,15 +1091,15 @@ public PageableResponse<List<ProductForAdminResponse>> getAllProductsForAdmin(
 
                 List<ProductImage> images = productImageRepository.findAllByProduct(product);
 
-                ProductDetailResponse productDetailResponse =  buildProductDetailResponse(
+                ProductDetailResponse productDetailResponse = buildProductDetailResponse(
                                 product,
                                 variants,
                                 images);
                 return ProductDetailForAdminResponse.builder()
-                .productDetailResponse(productDetailResponse)
-                .isActive(product.getIsActive())
-                .build();
-                
+                                .productDetailResponse(productDetailResponse)
+                                .isActive(product.getIsActive())
+                                .build();
+
         }
 
         @Override
