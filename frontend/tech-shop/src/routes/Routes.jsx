@@ -38,6 +38,7 @@ import CouponUsages from '../pages/admin/CouponUsages';
 import CouponCreate from '../pages/admin/CouponCreate';
 import CouponEdit from '../pages/admin/CouponEdit';
 import CouponDetail from '../pages/admin/CouponDetail';
+import BannerCreate from "../pages/admin/BannerCreate";
 
 
 
@@ -98,6 +99,7 @@ export default function AppRoutes() {
                         <Route path="/admin/coupons/edit/:couponId" element={<CouponEdit />} />
                         <Route path="/admin/coupons/:couponId/usages" element={<CouponUsages />} />
                         <Route path="/admin/banners" element={<Banners />} />
+                        <Route path="/admin/banners/create" element={<BannerCreate />} />
                         <Route path="/admin/settings" element={<Settings />} />
                     </Route>
                 </Route>

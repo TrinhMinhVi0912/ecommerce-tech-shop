@@ -34,7 +34,6 @@ const AdminLayout = () => {
     { path: '/admin/users', label: 'Quản lý người dùng', icon: Users },
     { path: '/admin/coupons', label: 'Quản lý mã khuyến mãi', icon: Tag },
     { path: '/admin/banners', label: 'Quản lý Banner', icon: ImageIcon },
-    { path: '/admin/settings', label: 'Cài đặt', icon: Settings },
   ];
 
   const handleLogout = async () => {
