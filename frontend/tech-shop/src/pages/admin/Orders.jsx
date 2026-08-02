@@ -655,8 +655,8 @@ export default function Orders() {
                                     key={index}
                                     onClick={() => goToSlide(index)}
                                     className={`w-2 h-2 rounded-full transition ${carouselIndex === index
-                                            ? 'bg-blue-600 w-4'
-                                            : 'bg-slate-300 hover:bg-slate-400'
+                                        ? 'bg-blue-600 w-4'
+                                        : 'bg-slate-300 hover:bg-slate-400'
                                         }`}
                                 />
                             ))}

@@ -8,26 +8,26 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter
-@Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class UserForAdminResponse {
+    @Getter
+    @Setter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public class UserForAdminResponse {
 
-    private String userId;
+        private String userId;
 
-    private String fullName;
+        private String fullName;
 
-    private String userName;
+        private String userName;
 
-    private String email;
+        private String email;
 
-    private String phone;
+        private String phone;
 
-    private Boolean enabled;
+        private Boolean enabled;
 
-    private String avatarUrl;
+        private String avatarUrl;
 
-    private LocalDateTime createdAt;
-}
+        private LocalDateTime createdAt;
+    }

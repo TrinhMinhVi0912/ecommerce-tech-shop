@@ -34,6 +34,11 @@ import ProductDetailForAdmin from '../pages/admin/ProductDetail';
 import ProductEdit from '../pages/admin/ProductEdit';
 import ProductCreate from '../pages/admin/ProductCreate';
 import OrderDetailForAdmin from '../pages/admin/OrderDetail';
+import CouponUsages from '../pages/admin/CouponUsages';
+import CouponCreate from '../pages/admin/CouponCreate';
+import CouponEdit from '../pages/admin/CouponEdit';
+import CouponDetail from '../pages/admin/CouponDetail';
+
 
 
 // Common
@@ -88,6 +93,10 @@ export default function AppRoutes() {
                         <Route path="/admin/orders/:orderId" element={<OrderDetailForAdmin />} />
                         <Route path="/admin/users" element={<Users />} />
                         <Route path="/admin/coupons" element={<Coupons />} />
+                        <Route path="/admin/coupons/create" element={<CouponCreate />} />
+                        <Route path="/admin/coupons/:couponId" element={<CouponDetail />} />
+                        <Route path="/admin/coupons/edit/:couponId" element={<CouponEdit />} />
+                        <Route path="/admin/coupons/:couponId/usages" element={<CouponUsages />} />
                         <Route path="/admin/banners" element={<Banners />} />
                         <Route path="/admin/settings" element={<Settings />} />
                     </Route>
