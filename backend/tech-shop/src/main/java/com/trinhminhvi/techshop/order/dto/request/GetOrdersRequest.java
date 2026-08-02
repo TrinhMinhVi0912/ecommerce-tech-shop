@@ -28,4 +28,6 @@ public class GetOrdersRequest {
     private String sortDir = "DESC";
 
     private OrderStatus status;
+
+    private String search;
 }

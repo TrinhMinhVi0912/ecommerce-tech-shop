@@ -61,6 +61,19 @@ public interface OrderRepository extends JpaRepository<Order, String> {
                         LEFT JOIN FETCH oi.productVariant pv
                         LEFT JOIN FETCH pv.product p
                         WHERE o.orderId=:orderId
+                                                """)
+        Optional<Order> findOrderDetailForAdmin(
+                        @Param("orderId") String orderId);
+
+        @Query("""
+                        SELECT DISTINCT o
+                        FROM Order o
+                        LEFT JOIN FETCH o.payment
+                        LEFT JOIN FETCH o.coupon
+                        LEFT JOIN FETCH o.orderItems oi
+                        LEFT JOIN FETCH oi.productVariant pv
+                        LEFT JOIN FETCH pv.product p
+                        WHERE o.orderId=:orderId
                         AND o.user=:user
                                                 """)
         Optional<Order> findOrderDetail(
@@ -82,6 +95,25 @@ public interface OrderRepository extends JpaRepository<Order, String> {
                         @Param("user") User user);
 
         Page<Order> findByStatus(OrderStatus status, Pageable pageable);
+
+        @Query("""
+                        SELECT o
+                        FROM Order o
+                        WHERE
+                                (:status IS NULL OR o.status = :status)
+                        AND
+                                (
+                                        :search IS NULL
+                                        OR LOWER(o.orderId) LIKE LOWER(CONCAT('%', :search, '%'))
+                                        OR LOWER(o.receiverName) LIKE LOWER(CONCAT('%', :search, '%'))
+                                        OR LOWER(o.receiverPhone) LIKE LOWER(CONCAT('%', :search, '%'))
+                                        OR LOWER(o.user.fullName) LIKE LOWER(CONCAT('%', :search, '%'))
+                                )
+                        """)
+        Page<Order> findAllForAdmin(
+                        @Param("status") OrderStatus status,
+                        @Param("search") String search,
+                        Pageable pageable);
 
         long countByStatus(OrderStatus status);
 

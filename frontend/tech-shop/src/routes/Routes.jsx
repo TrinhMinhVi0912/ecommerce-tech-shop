@@ -33,6 +33,7 @@ import Settings from '../pages/admin/Settings';
 import ProductDetailForAdmin from '../pages/admin/ProductDetail';
 import ProductEdit from '../pages/admin/ProductEdit';
 import ProductCreate from '../pages/admin/ProductCreate';
+import OrderDetailForAdmin from '../pages/admin/OrderDetail';
 
 
 // Common
@@ -84,6 +85,7 @@ export default function AppRoutes() {
                         <Route path="/admin/products/edit/:id" element={<ProductEdit />} />
                         <Route path="/admin/products/create" element={<ProductCreate />} />
                         <Route path="/admin/orders" element={<Orders />} />
+                        <Route path="/admin/orders/:orderId" element={<OrderDetailForAdmin />} />
                         <Route path="/admin/users" element={<Users />} />
                         <Route path="/admin/coupons" element={<Coupons />} />
                         <Route path="/admin/banners" element={<Banners />} />

@@ -16,6 +16,7 @@ import com.trinhminhvi.techshop.common.ApiResponse;
 import com.trinhminhvi.techshop.common.PageableResponse;
 import com.trinhminhvi.techshop.order.dto.request.GetOrdersRequest;
 import com.trinhminhvi.techshop.order.dto.request.UpdateOrderStatusRequest;
+import com.trinhminhvi.techshop.order.dto.response.OrderDetailResponse;
 import com.trinhminhvi.techshop.order.dto.response.OrderSummaryForAdminResponse;
 import com.trinhminhvi.techshop.order.dto.response.OrderSummaryResponse;
 import com.trinhminhvi.techshop.order.service.OrderService;
@@ -38,6 +39,17 @@ public class OrderAdminController {
                 .success(true)
                 .message("Get all orders successfully")
                 .data(orderService.getAllOrdersForAdmin(request))
+                .build();
+    }
+
+    @GetMapping("/{orderId}")
+    public ApiResponse<OrderDetailResponse> getOrderDetailForAdmin(
+            @PathVariable String orderId) {
+
+        return ApiResponse.<OrderDetailResponse>builder()
+                .success(true)
+                .message("Get order detail successfully")
+                .data(orderService.getOrderDetailForAdmin(orderId))
                 .build();
     }
 

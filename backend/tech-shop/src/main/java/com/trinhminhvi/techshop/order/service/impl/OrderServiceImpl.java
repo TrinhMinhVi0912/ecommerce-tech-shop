@@ -961,9 +961,11 @@ public class OrderServiceImpl implements OrderService {
                 request.getPageSize(),
                 sort);
 
-        Page<Order> orderPage = request.getStatus() != null
-                ? orderRepository.findByStatus(request.getStatus(), pageable)
-                : orderRepository.findAll(pageable);
+        String search = (request.getSearch() != null && !request.getSearch().trim().isEmpty())
+                ? request.getSearch().trim()
+                : null;
+
+        Page<Order> orderPage = orderRepository.findAllForAdmin(request.getStatus(), search, pageable);
 
         List<OrderSummaryForAdminResponse> items = orderPage.getContent()
                 .stream()
@@ -977,6 +979,16 @@ public class OrderServiceImpl implements OrderService {
                 .totalPages(orderPage.getTotalPages())
                 .items(items)
                 .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public OrderDetailResponse getOrderDetailForAdmin(String orderId) {
+
+        Order order = orderRepository.findOrderDetailForAdmin(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found."));
+
+        return buildOrderDetailResponse(order);
     }
 
     @Override

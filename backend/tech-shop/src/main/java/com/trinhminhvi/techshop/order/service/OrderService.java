@@ -24,6 +24,8 @@ public interface OrderService {
 
     public PageableResponse<List<OrderSummaryForAdminResponse>> getAllOrdersForAdmin(GetOrdersRequest request);
 
+    public OrderDetailResponse getOrderDetailForAdmin(String orderId);
+
     public void updateOrderStatusForAdmin(String orderId, UpdateOrderStatusRequest request);
 
 }

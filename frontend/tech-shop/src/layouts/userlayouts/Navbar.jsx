@@ -38,7 +38,7 @@ const Navbar = () => {
       <div className="max-w-6xl mx-auto px-4">
 
         {/* ==================== DESKTOP (≥ 768px) ==================== */}
-        <div className="hidden md:flex items-center justify-between h-13 gap-3">
+        <div className="hidden md:flex items-center justify-between h-12 gap-3">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-1.5 flex-shrink-0">
             <Laptop className="w-5 h-5 text-blue-600" />
