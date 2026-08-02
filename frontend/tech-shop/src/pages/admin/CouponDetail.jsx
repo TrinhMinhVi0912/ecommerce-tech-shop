@@ -19,8 +19,10 @@ import {
 } from 'lucide-react';
 import useCouponDetail from '@/features/admin/coupon/hooks/useCouponDetail';
 import useUpdateCouponStatus from '@/features/admin/coupon/hooks/useUpdateCouponStatus';
+import { useToast } from '@/context/ToastContext';
 
 export default function CouponDetail() {
+    const toast = useToast();
     const { couponId } = useParams();
     const navigate = useNavigate();
     const [isEditingStatus, setIsEditingStatus] = useState(false);
@@ -70,7 +72,7 @@ export default function CouponDetail() {
 
         } catch (error) {
             console.error('Update coupon status error:', error);
-            alert('Không thể cập nhật trạng thái. Vui lòng thử lại.');
+            toast.error('Không thể cập nhật trạng thái. Vui lòng thử lại.');
             await refetch();
         } finally {
             setIsUpdating(false);

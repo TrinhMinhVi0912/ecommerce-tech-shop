@@ -7,11 +7,13 @@ import useAddToCart from '@/features/cart/hooks/useAddCartItem';
 import useProductDetail from '@/features/product/hooks/useProductDetail';
 import useCartStore from '@/store/cartStore';
 import { getImageUrl } from '@/utils/imageUtils';
+import { useToast } from '@/context/ToastContext';
 
 const IMAGE_BASE_URL =
     import.meta.env.VITE_IMAGE_BASE_URL || "http://localhost:8080/api";
 
 const WishlistCard = ({ item, onRemove, onCartAdd }) => {
+    const toast = useToast();
     const [imageError, setImageError] = useState(false);
     const [isAdding, setIsAdding] = useState(false);
     const [selectedVariant, setSelectedVariant] = useState(null);
@@ -52,7 +54,7 @@ const WishlistCard = ({ item, onRemove, onCartAdd }) => {
                 if (onRemove) onRemove();
             } catch (error) {
                 console.error('Remove from wishlist error:', error);
-                alert('Không thể xóa sản phẩm. Vui lòng thử lại.');
+                toast.error('Không thể xóa sản phẩm. Vui lòng thử lại.');
             }
         }
     };
@@ -68,7 +70,7 @@ const WishlistCard = ({ item, onRemove, onCartAdd }) => {
 
         // Kiểm tra đã chọn variant chưa
         if (!selectedVariant) {
-            alert('Vui lòng chọn phân loại sản phẩm');
+            toast.warning('Vui lòng chọn phân loại sản phẩm');
             return;
         }
 
@@ -89,13 +91,13 @@ const WishlistCard = ({ item, onRemove, onCartAdd }) => {
                 await onCartAdd();
             }
 
-            alert('Đã thêm sản phẩm vào giỏ hàng!');
+            toast.success('Đã thêm sản phẩm vào giỏ hàng!');
         } catch (error) {
             console.error('Add to cart error:', error);
             const errorMessage = error.response?.data?.message ||
                 error.message ||
                 'Không thể thêm sản phẩm vào giỏ hàng. Vui lòng thử lại.';
-            alert(errorMessage);
+            toast.error(errorMessage);
         } finally {
             setIsAdding(false);
         }

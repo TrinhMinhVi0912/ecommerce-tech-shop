@@ -1,15 +1,35 @@
 // src/components/product/productdetails/ReviewForm.jsx
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Star } from "lucide-react";
 import useAddReview from "@/features/review/hooks/useAddReview";
+import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/context/ToastContext";
 
 export default function ReviewForm({ productId, onSuccess, existingReview = null }) {
+    const toast = useToast();
     const [rating, setRating] = useState(5);
     const [comment, setComment] = useState("");
     const [hoveredRating, setHoveredRating] = useState(0);
     const [errors, setErrors] = useState({});
     const [isSubmitted, setIsSubmitted] = useState(false);
     const { addReview, loading } = useAddReview();
+    const { isAuthenticated } = useAuth();
+
+    // ✅ Nếu chưa đăng nhập, hiển thị thông báo đăng nhập
+    if (!isAuthenticated) {
+        return (
+            <div className="bg-slate-50 rounded-xl border border-slate-200 p-6 text-center">
+                <p className="text-slate-600 mb-2">Đăng nhập để viết đánh giá</p>
+                <Link
+                    to={`/login?redirect=/products/${productId}`}
+                    className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm"
+                >
+                    Đăng nhập ngay
+                </Link>
+            </div>
+        );
+    }
 
     // ✅ Nếu đã có review, ẩn form và hiển thị thông báo
     if (existingReview) {
@@ -59,7 +79,7 @@ export default function ReviewForm({ productId, onSuccess, existingReview = null
             const errorMessage = error.response?.data?.message ||
                 error.response?.data?.errors?.[0] ||
                 'Không thể gửi đánh giá. Vui lòng thử lại.';
-            alert(errorMessage);
+            toast.error(errorMessage);
         }
     };
 

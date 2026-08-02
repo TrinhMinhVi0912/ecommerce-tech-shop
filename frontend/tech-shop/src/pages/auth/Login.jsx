@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Laptop } from 'lucide-react';
 import { Eye, EyeOff, Lock, User, AlertCircle, Loader2 } from 'lucide-react';
 import useLogin from '@/features/auth/hooks/useLogin';
@@ -7,6 +7,7 @@ import useLogin from '@/features/auth/hooks/useLogin';
 const Login = () => {
 
     const navigate = useNavigate();
+    const location = useLocation();
 
     // Trạng thái form
     const [userName, setUserName] = useState('');
@@ -19,6 +20,7 @@ const Login = () => {
 
     // ✅ Trạng thái lỗi đăng nhập
     const [loginError, setLoginError] = useState('');
+    const [isAccountLocked, setIsAccountLocked] = useState(false);
 
     // Custom hook login
     const { login, loading } = useLogin();
@@ -45,6 +47,7 @@ const Login = () => {
         // Reset lỗi cũ
         setFieldErrors({});
         setLoginError('');
+        setIsAccountLocked(false);
 
         if (!validate()) return;
 
@@ -57,15 +60,38 @@ const Login = () => {
 
             // ✅ Chỉ chuyển hướng khi đăng nhập thành công
             if (result && result.success) {
-                navigate("/", { replace: true });
+                // Kiểm tra nếu có redirect URL từ query params
+                const redirectTo = new URLSearchParams(location.search).get('redirect');
+                navigate(redirectTo || "/", { replace: true });
             } else {
-                // ✅ Hiển thị thông báo lỗi chung
-                setLoginError('Tên đăng nhập hoặc mật khẩu không chính xác.');
+                // ✅ Kiểm tra lỗi từ backend
+                const errorMessage = result?.message || '';
+
+                // ✅ Kiểm tra nếu lỗi là tài khoản bị khóa
+                if (errorMessage.toLowerCase().includes('disabled') ||
+                    errorMessage.toLowerCase().includes('locked') ||
+                    errorMessage.toLowerCase().includes('khóa')) {
+                    setIsAccountLocked(true);
+                    setLoginError('Tài khoản của bạn đã bị khóa. Vui lòng liên hệ hỗ trợ.');
+                } else {
+                    setLoginError('Tên đăng nhập hoặc mật khẩu không chính xác.');
+                }
             }
         } catch (error) {
-            // ✅ Bắt lỗi từ hook và hiển thị thông báo chung
+            // ✅ Bắt lỗi từ hook và hiển thị thông báo phù hợp
             console.error('Login error:', error);
-            setLoginError('Tên đăng nhập hoặc mật khẩu không chính xác.');
+
+            // ✅ Kiểm tra response từ server
+            const errorMessage = error?.response?.data?.message || error?.message || '';
+
+            if (errorMessage.toLowerCase().includes('disabled') ||
+                errorMessage.toLowerCase().includes('locked') ||
+                errorMessage.toLowerCase().includes('khóa')) {
+                setIsAccountLocked(true);
+                setLoginError('Tài khoản của bạn đã bị khóa. Vui lòng liên hệ hỗ trợ.');
+            } else {
+                setLoginError('Tên đăng nhập hoặc mật khẩu không chính xác.');
+            }
         }
     };
 
@@ -137,13 +163,28 @@ const Login = () => {
 
                     {/* ✅ Alert thông báo lỗi đăng nhập */}
                     {loginError && (
-                        <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 flex items-start space-x-3 text-red-700 text-sm animate-shake">
-                            <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                        <div className={`mb-6 p-4 rounded-xl border flex items-start space-x-3 text-sm animate-shake ${isAccountLocked
+                                ? 'bg-orange-50 border-orange-200 text-orange-700'
+                                : 'bg-red-50 border-red-200 text-red-700'
+                            }`}>
+                            <AlertCircle className={`w-5 h-5 flex-shrink-0 mt-0.5 ${isAccountLocked ? 'text-orange-500' : 'text-red-500'
+                                }`} />
                             <div>
-                                <p className="font-semibold">Đăng nhập thất bại</p>
-                                <p className="mt-0.5 text-xs text-red-600">
+                                <p className="font-semibold">
+                                    {isAccountLocked ? 'Tài khoản bị khóa' : 'Đăng nhập thất bại'}
+                                </p>
+                                <p className="mt-0.5 text-xs">
                                     {loginError}
                                 </p>
+                                {isAccountLocked && (
+                                    <div className="mt-2 text-xs">
+                                        <p>Vui lòng liên hệ hỗ trợ để được giải quyết:</p>
+                                        <div className="mt-1 space-y-0.5">
+                                            <p>📞 Hotline: <span className="font-medium">0123456789</span></p>
+                                            <p>✉️ Email: <span className="font-medium">support@techshop.vn</span></p>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
@@ -170,9 +211,9 @@ const Login = () => {
                                         if (fieldErrors.userName) {
                                             setFieldErrors((prev) => ({ ...prev, userName: '' }));
                                         }
-                                        // ✅ Xóa lỗi login khi user nhập lại
                                         if (loginError) {
                                             setLoginError('');
+                                            setIsAccountLocked(false);
                                         }
                                     }}
                                     placeholder="Nhập tên đăng nhập"
@@ -206,9 +247,9 @@ const Login = () => {
                                         if (fieldErrors.password) {
                                             setFieldErrors((prev) => ({ ...prev, password: '' }));
                                         }
-                                        // ✅ Xóa lỗi login khi user nhập lại
                                         if (loginError) {
                                             setLoginError('');
+                                            setIsAccountLocked(false);
                                         }
                                     }}
                                     placeholder="••••••••"

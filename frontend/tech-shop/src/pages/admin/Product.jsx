@@ -15,8 +15,10 @@ import {
 import useAdminProducts from '@/features/admin/product/hooks/useAdminProducts';
 import useUpdateProductStatus from '@/features/admin/product/hooks/useUpdateProductStatus';
 import { getImageUrl } from '@/utils/imageUtils';
+import { useToast } from '@/context/ToastContext';
 
 export default function Products() {
+    const toast = useToast();
     const [searchTerm, setSearchTerm] = useState('');
     const [searchInput, setSearchInput] = useState('');
     const [pageNum, setPageNum] = useState(1);
@@ -67,7 +69,7 @@ export default function Products() {
             await refetch();
         } catch (error) {
             console.error('Update status error:', error);
-            alert('Không thể cập nhật trạng thái sản phẩm. Vui lòng thử lại.');
+            toast.error('Không thể cập nhật trạng thái sản phẩm. Vui lòng thử lại.');
         }
     };
 

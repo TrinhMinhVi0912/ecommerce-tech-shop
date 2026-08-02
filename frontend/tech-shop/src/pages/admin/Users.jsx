@@ -11,8 +11,10 @@ import {
 import useAdminUsers from '@/features/admin/user/hooks/useAdminUsers';
 import useUpdateUserStatus from '@/features/admin/user/hooks/useUpdateUserStatus';
 import { getImageUrl } from '@/utils/imageUtils';
+import { useToast } from '@/context/ToastContext';
 
 export default function Users() {
+    const toast = useToast();
     const [searchTerm, setSearchTerm] = useState('');
     const [searchInput, setSearchInput] = useState('');
     const [pageNum, setPageNum] = useState(1);
@@ -80,7 +82,7 @@ export default function Users() {
 
         } catch (error) {
             console.error('Update user status error:', error);
-            alert('Không thể cập nhật trạng thái người dùng. Vui lòng thử lại.');
+            toast.error('Không thể cập nhật trạng thái người dùng. Vui lòng thử lại.');
             await refetch();
         } finally {
             setUpdatingId(null);

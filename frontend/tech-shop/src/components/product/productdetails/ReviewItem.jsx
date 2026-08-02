@@ -5,8 +5,10 @@ import useDeleteReview from "@/features/review/hooks/useDeleteReview";
 import useUpdateReview from "@/features/review/hooks/useUpdateReview";
 import { getImageUrl } from "@/utils/imageUtils";
 import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/context/ToastContext";
 
 export default function ReviewItem({ review, productId, onDelete, onUpdate }) {
+    const toast = useToast();
     const [isEditing, setIsEditing] = useState(false);
     const [rating, setRating] = useState(review.rating);
     const [comment, setComment] = useState(review.comment);
@@ -26,7 +28,7 @@ export default function ReviewItem({ review, productId, onDelete, onUpdate }) {
             if (onDelete) onDelete();
         } catch (error) {
             console.error("Delete review error:", error);
-            alert('Không thể xóa đánh giá. Vui lòng thử lại.');
+            toast.error('Không thể xóa đánh giá. Vui lòng thử lại.');
         }
     };
 
@@ -43,7 +45,7 @@ export default function ReviewItem({ review, productId, onDelete, onUpdate }) {
             if (onUpdate) onUpdate();
         } catch (error) {
             console.error("Update review error:", error);
-            alert('Không thể cập nhật đánh giá. Vui lòng thử lại.');
+            toast.error('Không thể cập nhật đánh giá. Vui lòng thử lại.');
         }
     };
 

@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, CreditCard, X } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/context/ToastContext';
 import useProfile from '@/features/user/hooks/useProfile';
 import useCheckout from '@/features/order/hooks/useCheckout';
 import useCreateVnPayPayment from '@/features/payment/hooks/useCreateVnPayPayment';
@@ -15,6 +16,7 @@ import CheckoutSuccess from '@/components/checkout/CheckoutSuccess';
 import LoginRequired from '@/components/cart/LoginRequired';
 
 export default function Checkout() {
+    const toast = useToast();
     const navigate = useNavigate();
     const location = useLocation();
     const { isAuthenticated, loading: authLoading } = useAuth();
@@ -106,7 +108,7 @@ export default function Checkout() {
             } catch (error) {
                 console.error('❌ Create VNPay payment error:', error);
                 const errorMessage = error.response?.data?.message || 'Không thể tạo thanh toán VNPay. Vui lòng thử lại.';
-                alert(errorMessage);
+                toast.error(errorMessage);
                 setIsCreatingPayment(false);
                 setStep(2);
                 hasCreatedPayment.current = false;
@@ -139,12 +141,12 @@ export default function Checkout() {
 
     const handleSubmit = async () => {
         if (!useSavedAddress && (!newAddress.addressLine || !newAddress.district || !newAddress.city)) {
-            alert('Vui lòng nhập đầy đủ thông tin địa chỉ');
+            toast.warning('Vui lòng nhập đầy đủ thông tin địa chỉ');
             return;
         }
 
         if (useSavedAddress && !selectedAddressId) {
-            alert('Vui lòng chọn địa chỉ giao hàng');
+            toast.warning('Vui lòng chọn địa chỉ giao hàng');
             return;
         }
 
@@ -182,7 +184,7 @@ export default function Checkout() {
             }
         } catch (error) {
             console.error('Checkout error:', error);
-            alert(error.response?.data?.message || 'Đặt hàng thất bại. Vui lòng thử lại.');
+            toast.error(error.response?.data?.message || 'Đặt hàng thất bại. Vui lòng thử lại.');
         } finally {
             setIsCreatingOrder(false);
         }

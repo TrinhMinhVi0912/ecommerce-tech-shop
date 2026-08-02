@@ -13,8 +13,10 @@ import {
     Tag
 } from 'lucide-react';
 import useCreateCoupon from '@/features/admin/coupon/hooks/useCreateCoupon';
+import { useToast } from '@/context/ToastContext';
 
 export default function CouponCreate() {
+    const toast = useToast();
     const navigate = useNavigate();
     const { createCoupon, loading } = useCreateCoupon();
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -94,11 +96,11 @@ export default function CouponCreate() {
             };
 
             await createCoupon(dataToSend);
-            alert('Tạo mã giảm giá thành công!');
+            toast.success('Tạo mã giảm giá thành công!');
             navigate('/admin/coupons');
         } catch (error) {
             console.error('Create coupon error:', error);
-            alert(error.response?.data?.message || 'Không thể tạo mã giảm giá. Vui lòng thử lại.');
+            toast.error(error.response?.data?.message || 'Không thể tạo mã giảm giá. Vui lòng thử lại.');
         } finally {
             setIsSubmitting(false);
         }

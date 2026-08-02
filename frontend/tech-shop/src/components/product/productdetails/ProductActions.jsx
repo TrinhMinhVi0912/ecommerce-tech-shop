@@ -7,8 +7,10 @@ import useRemoveFromWishlist from "@/features/wishlist/hooks/useRemoveWishlist";
 import useWishlist from "@/features/wishlist/hooks/useWishlist";
 import useCartStore from "@/store/cartStore";
 import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/context/ToastContext";
 
 export default function ProductActions({ productId, basePrice, variants = [] }) {
+    const toast = useToast();
     const navigate = useNavigate();
     const [quantity, setQuantity] = useState(1);
     const [selectedVariant, setSelectedVariant] = useState(variants[0] || null);
@@ -32,7 +34,7 @@ export default function ProductActions({ productId, basePrice, variants = [] }) 
 
         if (!variantId) {
             console.error('No variant selected');
-            alert('Vui lòng chọn phân loại sản phẩm');
+            toast.warning('Vui lòng chọn phân loại sản phẩm');
             return;
         }
 
@@ -49,12 +51,12 @@ export default function ProductActions({ productId, basePrice, variants = [] }) 
             await fetchCart();
 
             // Hiển thị thông báo thành công
-            alert('Đã thêm sản phẩm vào giỏ hàng!');
+            toast.success('Đã thêm sản phẩm vào giỏ hàng!');
 
         } catch (error) {
             console.error("Add to cart error:", error);
             const errorMessage = error.response?.data?.message || 'Không thể thêm vào giỏ hàng. Vui lòng thử lại.';
-            alert(errorMessage);
+            toast.error(errorMessage);
         } finally {
             setIsAddingToCart(false);
         }
@@ -70,7 +72,7 @@ export default function ProductActions({ productId, basePrice, variants = [] }) 
         const variantId = selectedVariant?.variantId || variants[0]?.variantId;
 
         if (!variantId) {
-            alert('Vui lòng chọn phân loại sản phẩm');
+            toast.warning('Vui lòng chọn phân loại sản phẩm');
             return;
         }
 
@@ -92,7 +94,7 @@ export default function ProductActions({ productId, basePrice, variants = [] }) 
         } catch (error) {
             console.error("Buy now error:", error);
             const errorMessage = error.response?.data?.message || 'Không thể thêm vào giỏ hàng. Vui lòng thử lại.';
-            alert(errorMessage);
+            toast.error(errorMessage);
         } finally {
             setIsAddingToCart(false);
         }
@@ -114,7 +116,7 @@ export default function ProductActions({ productId, basePrice, variants = [] }) 
             await refetchWishlist();
         } catch (error) {
             console.error("Toggle wishlist error:", error);
-            alert('Không thể thực hiện thao tác. Vui lòng thử lại.');
+            toast.error('Không thể thực hiện thao tác. Vui lòng thử lại.');
         }
     };
 

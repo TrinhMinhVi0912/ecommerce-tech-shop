@@ -11,6 +11,7 @@ import EmptyCart from "@/components/cart/EmptyCart";
 import LoginRequired from "@/components/cart/LoginRequired";
 
 export default function Cart() {
+
     const navigate = useNavigate();
     const { data, loading, error, refetch } = useCart();
     const { cart } = useCartStore();
@@ -55,7 +56,7 @@ export default function Cart() {
 
     // Nếu chưa đăng nhập
     if (!isAuthenticated) {
-        return <LoginRequired />;
+        return <LoginRequired type="cart" />;
     }
 
     if (loading) {

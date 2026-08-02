@@ -1,9 +1,9 @@
 // src/components/layout/Navbar.jsx
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Laptop, Search, Heart, ShoppingCart } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Laptop, Search, Heart, ShoppingCart, X } from 'lucide-react';
 import useCartStore from '@/store/cartStore';
-import useWishlistStore from '@/store/wishlistStore'; // ✅ Thêm import
+import useWishlistStore from '@/store/wishlistStore';
 import { useAuth } from '@/context/AuthContext';
 
 import useCategories from '../../features/category/hooks/useCategories';
@@ -14,21 +14,57 @@ import UserMenuDropdown from './UserMenuDropdown';
 
 const Navbar = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const searchRef = useRef(null);
+  const navigate = useNavigate();
 
   const { data: categoriesData } = useCategories();
   const { data: brandsData } = useBrands();
 
   const { totalItems, fetchCart } = useCartStore();
-  const { wishlistCount, fetchWishlistCount } = useWishlistStore(); // ✅ Lấy từ store
+  const { wishlistCount, fetchWishlistCount } = useWishlistStore();
   const { isAuthenticated } = useAuth();
 
   // Fetch cart và wishlist khi đăng nhập
   useEffect(() => {
     if (isAuthenticated) {
       fetchCart();
-      fetchWishlistCount(); // ✅ Fetch số lượng wishlist
+      fetchWishlistCount();
     }
   }, [isAuthenticated, fetchCart, fetchWishlistCount]);
+
+  // Xử lý tìm kiếm
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery('');
+      setIsSearchOpen(false);
+    }
+  };
+
+  // Xử lý phím Enter
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && searchQuery.trim()) {
+      navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery('');
+      setIsSearchOpen(false);
+    }
+  };
+
+  // Click outside để đóng search
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setIsSearchFocused(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const categoryItems = categoriesData?.data?.items ?? [];
   const brandItems = brandsData?.data?.items ?? [];
@@ -48,15 +84,28 @@ const Navbar = () => {
           </Link>
 
           {/* Search */}
-          <div className="flex-1 max-w-sm mx-2">
-            <div className="relative flex items-center">
+          <div className="flex-1 max-w-sm mx-2" ref={searchRef}>
+            <form onSubmit={handleSearch} className="relative flex items-center">
               <Search className="absolute left-3 w-3.5 h-3.5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Tìm kiếm laptop, bàn phím..."
-                className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-100 text-gray-800 rounded-full focus:outline-none focus:border-blue-500 focus:bg-white border border-transparent transition-all"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setIsSearchFocused(true)}
+                onKeyDown={handleKeyDown}
+                placeholder="Tìm kiếm theo tên sản phẩm..."
+                className="w-full pl-8 pr-10 py-1.5 text-xs bg-slate-100 text-gray-800 rounded-full focus:outline-none focus:border-blue-500 focus:bg-white border border-transparent transition-all"
               />
-            </div>
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 text-gray-400 hover:text-gray-600"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </form>
           </div>
 
           {/* Menu Links + Hover Dropdowns */}
@@ -85,7 +134,7 @@ const Navbar = () => {
           <div className="flex items-center space-x-2 pl-1">
             <div className="h-4 w-px bg-gray-200 mr-1" />
 
-            {/* Wishlist với badge số lượng */}
+            {/* Wishlist */}
             <Link
               to="/wishlist"
               className="relative p-1 text-gray-600 hover:text-blue-600 rounded-full transition"
@@ -99,7 +148,7 @@ const Navbar = () => {
               )}
             </Link>
 
-            {/* Cart với badge số lượng */}
+            {/* Cart */}
             <Link
               to="/cart"
               className="relative p-1 text-gray-600 hover:text-blue-600 rounded-full transition"
@@ -113,7 +162,6 @@ const Navbar = () => {
               )}
             </Link>
 
-            {/* Avatar → hover hiển thị menu user */}
             <UserMenuDropdown />
           </div>
         </div>
@@ -129,20 +177,38 @@ const Navbar = () => {
             className={`flex-1 transition-all ${isSearchOpen ? 'absolute inset-x-2 z-10 bg-white p-1' : 'max-w-[150px]'
               }`}
           >
-            <div className="relative flex items-center">
+            <form
+              onSubmit={handleSearch}
+              className="relative flex items-center"
+            >
               <Search className="w-3.5 h-3.5 absolute left-2.5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Tìm kiếm..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setIsSearchOpen(true)}
-                onBlur={() => setIsSearchOpen(false)}
-                className="w-full pl-7 pr-6 py-1.5 bg-slate-100 text-gray-800 text-xs rounded-full border border-transparent focus:outline-none focus:bg-white focus:border-blue-500"
+                onBlur={() => {
+                  setTimeout(() => {
+                    if (!searchQuery) setIsSearchOpen(false);
+                  }, 200);
+                }}
+                onKeyDown={handleKeyDown}
+                placeholder="Tìm kiếm..."
+                className="w-full pl-7 pr-8 py-1.5 bg-slate-100 text-gray-800 text-xs rounded-full border border-transparent focus:outline-none focus:bg-white focus:border-blue-500"
               />
-            </div>
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2 text-gray-400 hover:text-gray-600"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </form>
           </div>
 
           <div className="flex items-center gap-1.5">
-            {/* Wishlist mobile */}
             <Link to="/wishlist" className="relative p-1 text-gray-600">
               <Heart className="w-4 h-4" />
               {isAuthenticated && wishlistCount > 0 && (
@@ -152,7 +218,6 @@ const Navbar = () => {
               )}
             </Link>
 
-            {/* Cart mobile */}
             <Link to="/cart" className="relative p-1 text-gray-600">
               <ShoppingCart className="w-4 h-4" />
               {isAuthenticated && totalItems > 0 && (

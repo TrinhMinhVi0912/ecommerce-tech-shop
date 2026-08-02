@@ -21,9 +21,8 @@ export default function Wishlist() {
     const totalElements = wishlistData?.totalElements || 0;
     const totalPages = wishlistData?.totalPages || 0;
 
-    // ✅ Hàm refresh cả wishlist và cart
     const handleRefresh = async () => {
-        await refetch(); // Refresh wishlist
+        await refetch();
     };
 
     if (authLoading) {
@@ -49,7 +48,8 @@ export default function Wishlist() {
     }
 
     if (!isAuthenticated) {
-        return <LoginRequired />;
+        // ✅ Truyền type='wishlist' để hiển thị thông báo phù hợp
+        return <LoginRequired type="wishlist" />;
     }
 
     if (loading) {
@@ -111,7 +111,7 @@ export default function Wishlist() {
                         key={item.productId}
                         item={item}
                         onRemove={handleRefresh}
-                        onCartAdd={handleRefresh} // ✅ Truyền callback refresh
+                        onCartAdd={handleRefresh}
                     />
                 ))}
             </div>

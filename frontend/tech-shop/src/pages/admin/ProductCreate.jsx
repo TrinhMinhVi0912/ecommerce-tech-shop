@@ -15,8 +15,10 @@ import useCreateProduct from '@/features/admin/product/hooks/useAdminCreateProdu
 import useCategories from '@/features/category/hooks/useCategories';
 import useBrands from '@/features/brand/hooks/useBrands';
 import { getImageUrl } from '@/utils/imageUtils';
+import { useToast } from '@/context/ToastContext';
 
 export default function ProductCreate() {
+    const toast = useToast();
     const navigate = useNavigate();
 
     // Fetch data
@@ -82,7 +84,7 @@ export default function ProductCreate() {
 
     const removeVariant = (index) => {
         if (formData.variants.length <= 1) {
-            alert('Sản phẩm phải có ít nhất 1 biến thể');
+            toast.warning('Sản phẩm phải có ít nhất 1 biến thể');
             return;
         }
         const updatedVariants = formData.variants.filter((_, i) => i !== index);
@@ -102,7 +104,7 @@ export default function ProductCreate() {
         const updatedVariants = [...formData.variants];
         const attrs = updatedVariants[variantIndex].attributes || [];
         if (attrs.length <= 1) {
-            alert('Biến thể phải có ít nhất 1 thuộc tính');
+            toast.warning('Biến thể phải có ít nhất 1 thuộc tính');
             return;
         }
         updatedVariants[variantIndex].attributes = attrs.filter((_, i) => i !== attrIndex);
@@ -115,14 +117,14 @@ export default function ProductCreate() {
 
         const invalidFiles = files.filter(file => file.size > 5 * 1024 * 1024);
         if (invalidFiles.length > 0) {
-            alert('Một số file vượt quá 5MB. Vui lòng chọn file nhỏ hơn.');
+            toast.warning('Một số file vượt quá 5MB. Vui lòng chọn file nhỏ hơn.');
             return;
         }
 
         const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
         const invalidTypes = files.filter(file => !validTypes.includes(file.type));
         if (invalidTypes.length > 0) {
-            alert('Chỉ chấp nhận file ảnh (JPEG, PNG, WEBP)');
+            toast.warning('Chỉ chấp nhận file ảnh (JPEG, PNG, WEBP)');
             return;
         }
 
@@ -226,11 +228,11 @@ export default function ProductCreate() {
             const result = await createProduct(formDataToSend);
             console.log('✅ Create successful!', result);
 
-            alert('Thêm sản phẩm thành công!');
+            toast.success('Thêm sản phẩm thành công!');
             navigate('/admin/products');
         } catch (error) {
             console.error('❌ Create product error:', error);
-            alert(error.response?.data?.message || 'Không thể thêm sản phẩm. Vui lòng thử lại.');
+            toast.error(error.response?.data?.message || 'Không thể thêm sản phẩm. Vui lòng thử lại.');
         } finally {
             setIsSubmitting(false);
         }

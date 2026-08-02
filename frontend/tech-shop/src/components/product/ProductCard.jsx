@@ -8,11 +8,13 @@ import useAddToWishlist from '@/features/wishlist/hooks/useAddWishlist';
 import useRemoveFromWishlist from '@/features/wishlist/hooks/useRemoveWishlist';
 import { useAuth } from '@/context/AuthContext';
 import useWishlistStore from '@/store/wishlistStore'; // ✅ Thêm import store
+import { useToast } from '@/context/ToastContext';
 
 const IMAGE_BASE_URL =
   import.meta.env.VITE_IMAGE_BASE_URL || "http://localhost:8080/api";
 
 const ProductCard = ({ product }) => {
+  const toast = useToast();
   if (!product) return null;
 
   const {
@@ -60,7 +62,7 @@ const ProductCard = ({ product }) => {
     e.stopPropagation();
 
     if (!isAuthenticated) {
-      alert('Vui lòng đăng nhập để sử dụng chức năng này');
+      toast.warning('Vui lòng đăng nhập để sử dụng chức năng này');
       return;
     }
 
@@ -77,7 +79,7 @@ const ProductCard = ({ product }) => {
 
     } catch (error) {
       console.error('Wishlist error:', error);
-      alert('Không thể thực hiện thao tác. Vui lòng thử lại.');
+      toast.error('Không thể thực hiện thao tác. Vui lòng thử lại.');
     }
   };
 

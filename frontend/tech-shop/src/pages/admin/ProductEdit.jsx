@@ -17,8 +17,10 @@ import useAdminUpdateProduct from '@/features/admin/product/hooks/useAdminUpdate
 import useCategories from '@/features/category/hooks/useCategories';
 import useBrands from '@/features/brand/hooks/useBrands';
 import { getImageUrl } from '@/utils/imageUtils';
+import { useToast } from '@/context/ToastContext';
 
 export default function ProductEdit() {
+    const toast = useToast();
     const { id } = useParams();
     const navigate = useNavigate();
     const formRef = useRef(null);
@@ -126,7 +128,7 @@ export default function ProductEdit() {
 
     const removeVariant = (index) => {
         if (formData.variants.length <= 1) {
-            alert('Sản phẩm phải có ít nhất 1 biến thể');
+            toast.warning('Sản phẩm phải có ít nhất 1 biến thể');
             return;
         }
         const updatedVariants = formData.variants.filter((_, i) => i !== index);
@@ -146,7 +148,7 @@ export default function ProductEdit() {
         const updatedVariants = [...formData.variants];
         const attrs = updatedVariants[variantIndex].attributes || [];
         if (attrs.length <= 1) {
-            alert('Biến thể phải có ít nhất 1 thuộc tính');
+            toast.warning('Biến thể phải có ít nhất 1 thuộc tính');
             return;
         }
         updatedVariants[variantIndex].attributes = attrs.filter((_, i) => i !== attrIndex);
@@ -159,14 +161,14 @@ export default function ProductEdit() {
 
         const invalidFiles = files.filter(file => file.size > 5 * 1024 * 1024);
         if (invalidFiles.length > 0) {
-            alert('Một số file vượt quá 5MB. Vui lòng chọn file nhỏ hơn.');
+            toast.warning('Một số file vượt quá 5MB. Vui lòng chọn file nhỏ hơn.');
             return;
         }
 
         const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
         const invalidTypes = files.filter(file => !validTypes.includes(file.type));
         if (invalidTypes.length > 0) {
-            alert('Chỉ chấp nhận file ảnh (JPEG, PNG, WEBP)');
+            toast.warning('Chỉ chấp nhận file ảnh (JPEG, PNG, WEBP)');
             return;
         }
 
@@ -279,11 +281,11 @@ export default function ProductEdit() {
             });
 
             await updateProduct(id, formDataToSend);
-            alert('Cập nhật sản phẩm thành công!');
+            toast.success('Cập nhật sản phẩm thành công!');
             navigate(`/admin/products/${id}`);
         } catch (error) {
             console.error('Update product error:', error);
-            alert(error.response?.data?.message || 'Không thể cập nhật sản phẩm. Vui lòng thử lại.');
+            toast.error(error.response?.data?.message || 'Không thể cập nhật sản phẩm. Vui lòng thử lại.');
         } finally {
             setIsSubmitting(false);
         }

@@ -24,8 +24,10 @@ import {
 import useAdminOrderDetail from '@/features/admin/order/hooks/useAdminOrderDetail';
 import useUpdateOrderStatus from '@/features/admin/order/hooks/useUpdateOrderStatus';
 import { getImageUrl } from '@/utils/imageUtils';
+import { useToast } from '@/context/ToastContext';
 
 export default function OrderDetail() {
+    const toast = useToast();
     const { orderId } = useParams();
     const navigate = useNavigate();
     const [isEditingStatus, setIsEditingStatus] = useState(false);
@@ -152,10 +154,10 @@ export default function OrderDetail() {
             await refetch();
 
             setIsEditingStatus(false);
-            alert('Cập nhật trạng thái đơn hàng thành công!');
+            toast.success('Cập nhật trạng thái đơn hàng thành công!');
         } catch (error) {
             console.error('Update status error:', error);
-            alert('Không thể cập nhật trạng thái. Vui lòng thử lại.');
+            toast.error('Không thể cập nhật trạng thái. Vui lòng thử lại.');
 
             // ✅ Rollback nếu có lỗi
             if (order) {

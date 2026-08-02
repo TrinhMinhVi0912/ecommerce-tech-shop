@@ -6,6 +6,7 @@ import useUpdateCartItem from "@/features/cart/hooks/useUpdateCartItem";
 import useDeleteCartItem from "@/features/cart/hooks/useDeleteCartItem";
 import useCartStore from "@/store/cartStore";
 import { getImageUrl } from "@/utils/imageUtils";
+import { useToast } from "@/context/ToastContext";
 
 export default function CartItem({
     item,
@@ -14,6 +15,7 @@ export default function CartItem({
     onUpdate,
     onDelete
 }) {
+    const toast = useToast();
     const [quantity, setQuantity] = useState(item.quantity);
     const [originalQuantity, setOriginalQuantity] = useState(item.quantity);
     const [isChanged, setIsChanged] = useState(false);
@@ -68,7 +70,7 @@ export default function CartItem({
         if (quantity === originalQuantity) return;
 
         if (quantity < 1) {
-            alert('Số lượng phải lớn hơn 0');
+            toast.warning('Số lượng phải lớn hơn 0');
             setQuantity(1);
             return;
         }
@@ -91,7 +93,7 @@ export default function CartItem({
             console.error('❌ Update quantity error:', error);
             setQuantity(originalQuantity);
             const errorMessage = error.response?.data?.message || 'Không thể cập nhật số lượng. Vui lòng thử lại.';
-            alert(errorMessage);
+            toast.error(errorMessage);
         } finally {
             setIsUpdating(false);
         }
@@ -134,7 +136,7 @@ export default function CartItem({
             });
 
             const errorMessage = error.response?.data?.message || 'Không thể xóa sản phẩm. Vui lòng thử lại.';
-            alert(errorMessage);
+            toast.error(errorMessage);
         } finally {
             setIsDeleting(false);
         }

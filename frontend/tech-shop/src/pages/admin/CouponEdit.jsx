@@ -14,8 +14,10 @@ import {
 } from 'lucide-react';
 import useCouponDetail from '@/features/admin/coupon/hooks/useCouponDetail';
 import useUpdateCoupon from '@/features/admin/coupon/hooks/useUpdateCoupon';
+import { useToast } from '@/context/ToastContext';
 
 export default function CouponEdit() {
+    const toast = useToast();
     const { couponId } = useParams();
     const navigate = useNavigate();
     const { data: coupon, loading: loadingDetail } = useCouponDetail(couponId);
@@ -112,11 +114,11 @@ export default function CouponEdit() {
             };
 
             await updateCoupon(couponId, dataToSend);
-            alert('Cập nhật mã giảm giá thành công!');
+            toast.success('Cập nhật mã giảm giá thành công!');
             navigate(`/admin/coupons/${couponId}`);
         } catch (error) {
             console.error('Update coupon error:', error);
-            alert(error.response?.data?.message || 'Không thể cập nhật mã giảm giá. Vui lòng thử lại.');
+            toast.error(error.response?.data?.message || 'Không thể cập nhật mã giảm giá. Vui lòng thử lại.');
         } finally {
             setIsSubmitting(false);
         }

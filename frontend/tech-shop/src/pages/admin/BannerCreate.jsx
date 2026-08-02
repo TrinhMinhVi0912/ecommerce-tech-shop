@@ -12,8 +12,10 @@ import {
 } from 'lucide-react';
 import useCreateBanner from '@/features/admin/banner/hooks/useCreateBanner';
 import { getImageUrl } from '@/utils/imageUtils';
+import { useToast } from '@/context/ToastContext';
 
 export default function BannerCreate() {
+    const toast = useToast();
     const navigate = useNavigate();
     const { createBanner, loading } = useCreateBanner();
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -27,12 +29,12 @@ export default function BannerCreate() {
         if (!file) return;
 
         if (!file.type.startsWith('image/')) {
-            alert('Vui lòng chọn file ảnh');
+            toast.warning('Vui lòng chọn file ảnh');
             return;
         }
 
         if (file.size > 5 * 1024 * 1024) {
-            alert('Kích thước ảnh không được vượt quá 5MB');
+            toast.warning('Kích thước ảnh không được vượt quá 5MB');
             return;
         }
 
@@ -67,11 +69,11 @@ export default function BannerCreate() {
             formData.append('image', imageFile);
 
             await createBanner(formData);
-            alert('Thêm banner thành công!');
+            toast.success('Thêm banner thành công!');
             navigate('/admin/banners');
         } catch (error) {
             console.error('Create banner error:', error);
-            alert(error.response?.data?.message || 'Không thể thêm banner. Vui lòng thử lại.');
+            toast.error(error.response?.data?.message || 'Không thể thêm banner. Vui lòng thử lại.');
         } finally {
             setIsSubmitting(false);
         }

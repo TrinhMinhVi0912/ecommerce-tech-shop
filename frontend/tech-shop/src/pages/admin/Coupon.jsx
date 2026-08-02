@@ -21,8 +21,10 @@ import {
 } from 'lucide-react';
 import useAdminCoupons from '@/features/admin/coupon/hooks/useAdminCoupons';
 import useUpdateCouponStatus from '@/features/admin/coupon/hooks/useUpdateCouponStatus';
+import { useToast } from '@/context/ToastContext';
 
 export default function Coupons() {
+    const toast = useToast();
     const [searchTerm, setSearchTerm] = useState('');
     const [searchInput, setSearchInput] = useState('');
     const [pageNum, setPageNum] = useState(1);
@@ -108,7 +110,7 @@ export default function Coupons() {
 
         } catch (error) {
             console.error('Update coupon status error:', error);
-            alert('Không thể cập nhật trạng thái mã giảm giá. Vui lòng thử lại.');
+            toast.error('Không thể cập nhật trạng thái mã giảm giá. Vui lòng thử lại.');
             await refetch();
         } finally {
             setUpdatingId(null);

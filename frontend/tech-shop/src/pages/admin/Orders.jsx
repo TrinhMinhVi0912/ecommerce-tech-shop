@@ -28,8 +28,10 @@ import {
 import useAdminOrders from '@/features/admin/order/hooks/useAdminOrders';
 import useAdminPendingOrders from '@/features/admin/order/hooks/useAdminPendingOrders';
 import useUpdateOrderStatus from '@/features/admin/order/hooks/useUpdateOrderStatus';
+import { useToast } from '@/context/ToastContext';
 
 export default function Orders() {
+    const toast = useToast();
     const [searchTerm, setSearchTerm] = useState('');
     const [searchInput, setSearchInput] = useState('');
     const [pageNum, setPageNum] = useState(1);
@@ -182,7 +184,7 @@ export default function Orders() {
 
         } catch (error) {
             console.error('Update status error:', error);
-            alert('Không thể cập nhật trạng thái. Vui lòng thử lại.');
+            toast.error('Không thể cập nhật trạng thái. Vui lòng thử lại.');
 
             // Rollback nếu lỗi
             await Promise.all([refetch(), refetchPending()]);

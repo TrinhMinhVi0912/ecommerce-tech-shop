@@ -19,8 +19,10 @@ import useAdminBanners from '@/features/admin/banner/hooks/useAdminBanners';
 import useUpdateBannerStatus from '@/features/admin/banner/hooks/useUpdateBannerStatus';
 import useDeleteBanner from '@/features/admin/banner/hooks/useDeleteBanner';
 import { getImageUrl } from '@/utils/imageUtils';
+import { useToast } from '@/context/ToastContext';
 
 export default function Banners() {
+    const toast = useToast();
     const [searchTerm, setSearchTerm] = useState('');
     const [searchInput, setSearchInput] = useState('');
     const [pageNum, setPageNum] = useState(1);
@@ -103,7 +105,7 @@ export default function Banners() {
 
         } catch (error) {
             console.error('Update banner status error:', error);
-            alert('Không thể cập nhật trạng thái banner. Vui lòng thử lại.');
+            toast.error('Không thể cập nhật trạng thái banner. Vui lòng thử lại.');
             await refetch();
         } finally {
             setUpdatingId(null);
@@ -118,11 +120,11 @@ export default function Banners() {
         try {
             setDeletingId(bannerId);
             await deleteBanner(bannerId);
-            alert('Xóa banner thành công!');
+            toast.success('Xóa banner thành công!');
             await refetch();
         } catch (error) {
             console.error('Delete banner error:', error);
-            alert(error.response?.data?.message || 'Không thể xóa banner. Vui lòng thử lại.');
+            toast.error(error.response?.data?.message || 'Không thể xóa banner. Vui lòng thử lại.');
         } finally {
             setDeletingId(null);
         }
