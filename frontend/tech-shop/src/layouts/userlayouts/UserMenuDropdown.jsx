@@ -8,24 +8,116 @@ import { getImageUrl } from '@/utils/imageUtils';
 
 const UserMenuDropdown = ({ size = 'md' }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(null);
+  const [isFetching, setIsFetching] = useState(false);
   const navigate = useNavigate();
   const { user, isAuthenticated, refreshUser } = useAuth();
   const { logout } = useLogout();
 
   const dropdownRef = useRef(null);
   const timeoutRef = useRef(null);
+  const fetchTimeoutRef = useRef(null);
+  const hasFetchedRef = useRef(false); // ✅ Đánh dấu đã fetch
 
-  // ✅ Refresh user khi component mount (để đảm bảo avatar mới nhất)
+  // ✅ Lắng nghe thay đổi của user để cập nhật avatar - CHỈ GỌI 1 LẦN
   useEffect(() => {
-    if (isAuthenticated) {
-      refreshUser();
+    // Nếu đã fetch rồi hoặc không có avatar, không làm gì
+    if (!user?.avatarUrl || hasFetchedRef.current) {
+      return;
     }
-  }, [isAuthenticated, refreshUser]);
+
+    // Nếu đang fetch, không làm gì
+    if (isFetching) {
+      return;
+    }
+
+    // Clear timeout cũ
+    if (fetchTimeoutRef.current) {
+      clearTimeout(fetchTimeoutRef.current);
+    }
+
+    // ✅ Đợi 0.5s rồi fetch 1 lần duy nhất
+    fetchTimeoutRef.current = setTimeout(async () => {
+      if (hasFetchedRef.current) {
+        return;
+      }
+
+      try {
+        setIsFetching(true);
+        console.log('🔄 Fetching navbar avatar...');
+
+        const refreshedUser = await refreshUser();
+        const avatarPath = refreshedUser?.avatarUrl || user?.avatarUrl;
+
+        if (avatarPath) {
+          const url = getImageUrl(avatarPath);
+          console.log('🖼️ Navbar avatar set:', url);
+          setAvatarUrl(url);
+          hasFetchedRef.current = true; // ✅ Đánh dấu đã fetch
+        }
+      } catch (error) {
+        console.error('Error fetching avatar:', error);
+      } finally {
+        setIsFetching(false);
+      }
+    }, 500);
+
+    return () => {
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
+    };
+  }, [user?.avatarUrl, refreshUser, isFetching]);
+
+  // ✅ Lắng nghe sự kiện refresh avatar từ ProfileAvatar
+  useEffect(() => {
+    const handleAvatarUpdate = (event) => {
+      console.log('🔄 Avatar update event received in Navbar');
+
+      // Reset flag để cho phép fetch lại
+      hasFetchedRef.current = false;
+
+      // Nếu có avatar URL trong event, cập nhật ngay
+      if (event?.detail?.avatarUrl) {
+        const url = getImageUrl(event.detail.avatarUrl);
+        setAvatarUrl(url);
+        hasFetchedRef.current = true;
+      } else if (user?.avatarUrl) {
+        // Nếu không có trong event, fetch lại sau 0.5s
+        if (fetchTimeoutRef.current) {
+          clearTimeout(fetchTimeoutRef.current);
+        }
+
+        fetchTimeoutRef.current = setTimeout(async () => {
+          if (hasFetchedRef.current) return;
+
+          try {
+            const refreshedUser = await refreshUser();
+            if (refreshedUser?.avatarUrl) {
+              const url = getImageUrl(refreshedUser.avatarUrl);
+              setAvatarUrl(url);
+              hasFetchedRef.current = true;
+            }
+          } catch (error) {
+            console.error('Error refreshing avatar:', error);
+          }
+        }, 500);
+      }
+    };
+
+    window.addEventListener('avatar-updated', handleAvatarUpdate);
+    return () => {
+      window.removeEventListener('avatar-updated', handleAvatarUpdate);
+    };
+  }, [user?.avatarUrl, refreshUser]);
 
   useEffect(() => {
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
+      }
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
       }
     };
   }, []);
@@ -53,9 +145,6 @@ const UserMenuDropdown = ({ size = 'md' }) => {
   const avatarSize = size === 'sm' ? 'w-8 h-8' : 'w-9 h-9';
   const textSize = size === 'sm' ? 'text-xs' : 'text-sm';
 
-  console.log('🔍 UserMenuDropdown - isAuthenticated:', isAuthenticated);
-  console.log('🔍 UserMenuDropdown - user:', user);
-
   // Nếu chưa đăng nhập
   if (!isAuthenticated) {
     return (
@@ -71,7 +160,6 @@ const UserMenuDropdown = ({ size = 'md' }) => {
     );
   }
 
-  const avatarUrl = getImageUrl(user?.avatarUrl);
   const displayName = user?.fullName || user?.userName || 'User';
   const firstLetter = displayName.charAt(0).toUpperCase();
   const userRole = user?.role || 'USER';
@@ -93,6 +181,7 @@ const UserMenuDropdown = ({ size = 'md' }) => {
             alt={displayName}
             className="w-full h-full object-cover"
             onError={(e) => {
+              console.error('❌ Avatar load error:', avatarUrl);
               e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random&size=40`;
             }}
           />
@@ -109,6 +198,7 @@ const UserMenuDropdown = ({ size = 'md' }) => {
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
+          {/* User Info */}
           <div className="px-4 py-3 border-b border-slate-100">
             <div className="font-medium text-slate-900 truncate">
               {displayName}
@@ -123,6 +213,7 @@ const UserMenuDropdown = ({ size = 'md' }) => {
             </div>
           </div>
 
+          {/* Menu Items */}
           <div className="py-1">
             <Link
               to="/profile"
@@ -163,6 +254,7 @@ const UserMenuDropdown = ({ size = 'md' }) => {
             )}
           </div>
 
+          {/* Logout */}
           <div className="border-t border-slate-100 pt-1">
             <button
               onClick={handleLogout}

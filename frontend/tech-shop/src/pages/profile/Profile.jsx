@@ -10,12 +10,12 @@ import AddressList from "@/components/profile/AddressList";
 export default function Profile() {
     const { user: authUser, isAuthenticated, loading: authLoading, refreshUser } = useAuth();
     const { data, loading, refetch } = useProfile();
+    const [refreshKey, setRefreshKey] = useState(0);
 
     const profileData = data?.data || data;
     const userInfo = profileData || authUser;
     const addresses = userInfo?.addresses || [];
 
-    // ✅ Refresh user khi component mount
     useEffect(() => {
         if (isAuthenticated) {
             refreshUser();
@@ -24,7 +24,10 @@ export default function Profile() {
 
     const handleUpdateSuccess = async () => {
         await refetch();
-        await refreshUser(); // ✅ Refresh cả AuthContext
+        // ✅ Đợi 1 giây trước khi refresh user để server xử lý xong
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        await refreshUser(); // Refresh AuthContext để cập nhật cả Navbar
+        setRefreshKey(prev => prev + 1);
     };
 
     if (authLoading || loading) {
@@ -47,11 +50,12 @@ export default function Profile() {
                 Tài khoản của tôi
             </h1>
 
-            {/* Hàng 1: Avatar + Thông tin cá nhân */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
                 <div className="lg:col-span-1">
-                    {/* ✅ Không cần truyền user prop */}
-                    <ProfileAvatar onAvatarUpdate={handleUpdateSuccess} />
+                    <ProfileAvatar
+                        key={`avatar-${refreshKey}`}
+                        onAvatarUpdate={handleUpdateSuccess}
+                    />
                 </div>
                 <div className="lg:col-span-2">
                     <ProfileInfo
@@ -61,7 +65,6 @@ export default function Profile() {
                 </div>
             </div>
 
-            {/* Hàng 2: Đổi mật khẩu + Sổ địa chỉ */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>
                     <ChangePasswordForm onSuccess={handleUpdateSuccess} />

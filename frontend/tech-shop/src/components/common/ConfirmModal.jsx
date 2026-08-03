@@ -1,0 +1,93 @@
+// src/components/common/ConfirmModal.jsx
+import React from 'react';
+import { X, AlertTriangle } from 'lucide-react';
+
+export default function ConfirmModal({
+    isOpen,
+    onClose,
+    onConfirm,
+    title = 'Xác nhận',
+    message = 'Bạn có chắc chắn muốn thực hiện hành động này?',
+    confirmText = 'Xác nhận',
+    cancelText = 'Hủy',
+    type = 'danger' // 'danger' | 'warning' | 'info'
+}) {
+    if (!isOpen) return null;
+
+    const getTypeStyles = () => {
+        switch (type) {
+            case 'danger':
+                return {
+                    iconBg: 'bg-red-100',
+                    iconColor: 'text-red-600',
+                    button: 'bg-red-600 hover:bg-red-700 focus:ring-red-500'
+                };
+            case 'warning':
+                return {
+                    iconBg: 'bg-yellow-100',
+                    iconColor: 'text-yellow-600',
+                    button: 'bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500'
+                };
+            default:
+                return {
+                    iconBg: 'bg-blue-100',
+                    iconColor: 'text-blue-600',
+                    button: 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
+                };
+        }
+    };
+
+    const styles = getTypeStyles();
+
+    return (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+            {/* Overlay */}
+            <div
+                className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                onClick={onClose}
+            />
+
+            {/* Modal */}
+            <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-scale-in">
+                {/* Close button */}
+                <button
+                    onClick={onClose}
+                    className="absolute top-4 right-4 p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition"
+                >
+                    <X size={20} />
+                </button>
+
+                {/* Icon */}
+                <div className={`w-12 h-12 rounded-full ${styles.iconBg} flex items-center justify-center mx-auto mb-4`}>
+                    <AlertTriangle className={`w-6 h-6 ${styles.iconColor}`} />
+                </div>
+
+                {/* Title */}
+                <h3 className="text-lg font-bold text-slate-900 text-center mb-2">
+                    {title}
+                </h3>
+
+                {/* Message */}
+                <p className="text-sm text-slate-500 text-center mb-6">
+                    {message}
+                </p>
+
+                {/* Actions */}
+                <div className="flex gap-3">
+                    <button
+                        onClick={onClose}
+                        className="flex-1 px-4 py-2.5 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
+                    >
+                        {cancelText}
+                    </button>
+                    <button
+                        onClick={onConfirm}
+                        className={`flex-1 px-4 py-2.5 text-white rounded-lg text-sm font-medium transition ${styles.button}`}
+                    >
+                        {confirmText}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}

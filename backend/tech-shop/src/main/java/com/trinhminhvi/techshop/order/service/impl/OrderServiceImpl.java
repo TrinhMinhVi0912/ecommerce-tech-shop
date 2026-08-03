@@ -312,35 +312,35 @@ public class OrderServiceImpl implements OrderService {
         }
 
         Coupon coupon = couponRepository.findByCode(request.getCouponCode())
-                .orElseThrow(() -> new RuntimeException("Coupon not found"));
+                .orElseThrow(() -> new RuntimeException("Mã giảm giá không tồn tại"));
 
         if (!coupon.getActive()) {
-            throw new RuntimeException("Coupon is inactive");
+            throw new RuntimeException("Mã giảm giá không tồn tại");
         }
 
         LocalDateTime now = LocalDateTime.now();
 
         if (coupon.getStartDate() != null && now.isBefore(coupon.getStartDate())) {
-            throw new RuntimeException("Coupon has not started yet");
+            throw new RuntimeException("Mã giảm giá không tồn tại");
         }
 
         if (coupon.getExpireDate() != null && now.isAfter(coupon.getExpireDate())) {
-            throw new RuntimeException("Coupon has expired");
+            throw new RuntimeException("Mã giảm giá đã hết hạn");
         }
 
         if (coupon.getQuantity() <= 0) {
-            throw new RuntimeException("Coupon is out of stock");
+            throw new RuntimeException("Coupon đã hết số lần sử dụng");
         }
 
         if (priceSummary.getTotalPrice().compareTo(coupon.getMinimumOrder()) < 0) {
             throw new RuntimeException(
-                    "Minimum order value is " + coupon.getMinimumOrder());
+                    "Đơn hàng nhỏ nhất để áp dụng mã giảm giá là " + coupon.getMinimumOrder());
         }
 
         boolean used = couponUsageRepository.existsByUserAndCoupon(user, coupon);
 
         if (used) {
-            throw new RuntimeException("Coupon has already been used");
+            throw new RuntimeException("Bạn đã sử dụng mã giảm giá");
         }
 
         return coupon;

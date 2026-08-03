@@ -4,18 +4,21 @@ import { Camera, Loader2 } from "lucide-react";
 import useUploadAvatar from "@/features/user/hooks/useUploadAvatar";
 import { useAuth } from "@/context/AuthContext";
 import { getImageUrl } from "@/utils/imageUtils";
+import { useToast } from "@/context/ToastContext";
 
 export default function ProfileAvatar({ onAvatarUpdate }) {
     const [isUploading, setIsUploading] = useState(false);
     const [avatarUrl, setAvatarUrl] = useState(null);
     const fileInputRef = useRef(null);
     const { uploadAvatar } = useUploadAvatar();
-    const { user, refreshUser, isAuthenticated } = useAuth();
+    const { user, refreshUser, isAuthenticated, updateUser } = useAuth();
+    const { success, error } = useToast();
 
-    // ✅ Lấy avatar từ user trong AuthContext
+    // Lấy avatar từ user
     useEffect(() => {
         if (user?.avatarUrl) {
-            setAvatarUrl(getImageUrl(user.avatarUrl));
+            const url = getImageUrl(user.avatarUrl);
+            setAvatarUrl(url);
         } else {
             setAvatarUrl(null);
         }
@@ -29,28 +32,66 @@ export default function ProfileAvatar({ onAvatarUpdate }) {
         if (!file) return;
 
         if (!file.type.startsWith('image/')) {
-            alert('Vui lòng chọn file ảnh');
+            error('Vui lòng chọn file ảnh');
             return;
         }
         if (file.size > 5 * 1024 * 1024) {
-            alert('Kích thước ảnh không được vượt quá 5MB');
+            error('Kích thước ảnh không được vượt quá 5MB');
             return;
         }
 
         try {
             setIsUploading(true);
-            await uploadAvatar(file);
 
-            // ✅ Refresh user để lấy avatar mới
-            await refreshUser();
+            const result = await uploadAvatar(file);
 
-            if (onAvatarUpdate) {
-                await onAvatarUpdate();
+            console.log('📤 Upload result:', result);
+
+            const newAvatarUrl = result?.avatarUrl || result?.data?.avatarUrl;
+
+            if (newAvatarUrl) {
+                // Cập nhật user trong AuthContext
+                const updatedUser = {
+                    ...user,
+                    avatarUrl: newAvatarUrl
+                };
+                updateUser(updatedUser);
+
+                // Đợi 1 giây để server xử lý ảnh
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                // Refresh user để lấy thông tin mới nhất
+                const refreshedUser = await refreshUser();
+                console.log('🔄 Profile refresh user result:', refreshedUser);
+
+                // Cập nhật avatar URL
+                const url = getImageUrl(newAvatarUrl);
+                setAvatarUrl(url);
+
+                success('Cập nhật ảnh đại diện thành công!');
+
+                // ✅ Dispatch event để thông báo cho Navbar
+                window.dispatchEvent(new CustomEvent('avatar-updated', {
+                    detail: { avatarUrl: newAvatarUrl }
+                }));
+
+                // Gọi callback để cập nhật các component khác
+                if (onAvatarUpdate) {
+                    await onAvatarUpdate();
+                }
+            } else {
+                // Đợi 1 giây rồi refresh
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                await refreshUser();
+                success('Cập nhật ảnh đại diện thành công!');
+
+                // ✅ Dispatch event
+                window.dispatchEvent(new CustomEvent('avatar-updated'));
             }
-            alert('Cập nhật ảnh đại diện thành công!');
+
         } catch (error) {
             console.error('Upload avatar error:', error);
-            alert('Không thể cập nhật ảnh đại diện. Vui lòng thử lại.');
+            error(error.response?.data?.message || 'Không thể cập nhật ảnh đại diện. Vui lòng thử lại.');
         } finally {
             setIsUploading(false);
             if (fileInputRef.current) {
@@ -73,6 +114,7 @@ export default function ProfileAvatar({ onAvatarUpdate }) {
                             alt={displayName}
                             className="w-full h-full object-cover"
                             onError={(e) => {
+                                console.error('❌ Image load error:', avatarUrl);
                                 e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random&size=96`;
                             }}
                         />

@@ -16,7 +16,6 @@ const CheckoutPayment = ({
     const paymentMethods = [
         { id: 'COD', label: 'Thanh toán khi nhận hàng (COD)', icon: Banknote, description: 'Thanh toán bằng tiền mặt khi nhận hàng' },
         { id: 'VNPAY', label: 'Thanh toán qua VNPay', icon: CreditCard, description: 'Thanh toán trực tuyến qua VNPay' },
-        { id: 'MOMO', label: 'Thanh toán qua MoMo', icon: Wallet, description: 'Thanh toán qua ví MoMo' },
     ];
 
     return (
@@ -36,8 +35,8 @@ const CheckoutPayment = ({
                             key={method.id}
                             onClick={() => setPaymentMethod(method.id)}
                             className={`w-full text-left p-4 rounded-lg border-2 transition ${isSelected
-                                    ? 'border-blue-500 bg-blue-50'
-                                    : 'border-slate-200 hover:border-slate-300'
+                                ? 'border-blue-500 bg-blue-50'
+                                : 'border-slate-200 hover:border-slate-300'
                                 }`}
                         >
                             <div className="flex items-center gap-3">

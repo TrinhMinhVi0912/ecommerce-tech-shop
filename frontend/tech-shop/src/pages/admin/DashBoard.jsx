@@ -23,6 +23,10 @@ export default function Dashboard() {
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     const [isYearDropdownOpen, setIsYearDropdownOpen] = useState(false);
 
+    // ✅ State để lưu tháng/quý được chọn từ biểu đồ
+    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+    const [selectedQuarter, setSelectedQuarter] = useState(Math.ceil((new Date().getMonth() + 1) / 3));
+
     // Generate year options (2020 to current year)
     const currentYear = new Date().getFullYear();
     const yearOptions = [];
@@ -40,12 +44,21 @@ export default function Dashboard() {
         type: timeFilter,
         year: selectedYear
     });
-    const { data: topProducts, loading: topProductsLoading } = useAdminTopProducts({
+
+    // ✅ Lấy top products dựa trên tháng/quý được chọn
+    const isCurrentYear = selectedYear === new Date().getFullYear();
+    let topProductParams = {
         type: timeFilter,
         year: selectedYear,
-        month: new Date().getMonth() + 1,
-        quarter: Math.ceil((new Date().getMonth() + 1) / 3)
-    });
+    };
+
+    if (timeFilter === 'MONTH') {
+        topProductParams.month = selectedMonth;
+    } else if (timeFilter === 'QUARTER') {
+        topProductParams.quarter = selectedQuarter;
+    }
+
+    const { data: topProducts, loading: topProductsLoading } = useAdminTopProducts(topProductParams);
 
     const isLoading = summaryLoading || revenueLoading || ordersLoading || topProductsLoading;
 
@@ -62,8 +75,7 @@ export default function Dashboard() {
         return new Intl.NumberFormat('vi-VN').format(value || 0);
     };
 
-    // Get current month index (only for MONTH view)
-    const currentMonth = new Date().getMonth();
+    const currentMonthIndex = new Date().getMonth();
 
     // Get label based on time filter
     const getTimeLabel = () => {
@@ -72,6 +84,33 @@ export default function Dashboard() {
             case 'QUARTER': return 'Quý';
             case 'YEAR': return 'Năm';
             default: return 'Tháng';
+        }
+    };
+
+    const getCurrentMonthName = () => {
+        const monthNames = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
+            'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
+        return monthNames[selectedMonth - 1];
+    };
+
+    const getTopProductLabel = () => {
+        if (timeFilter === 'MONTH') {
+            return `${getCurrentMonthName()} - ${selectedYear}`;
+        } else if (timeFilter === 'QUARTER') {
+            return `Quý ${selectedQuarter} - ${selectedYear}`;
+        } else {
+            return `Năm ${selectedYear}`;
+        }
+    };
+
+    // ✅ Xử lý click vào cột biểu đồ
+    const handleChartBarClick = (index) => {
+        if (timeFilter === 'MONTH') {
+            const month = index + 1;
+            setSelectedMonth(month);
+        } else if (timeFilter === 'QUARTER') {
+            const quarter = index + 1;
+            setSelectedQuarter(quarter);
         }
     };
 
@@ -268,9 +307,7 @@ export default function Dashboard() {
                         </h3>
                         <div className="flex items-center gap-3">
                             <span className="text-xs text-slate-400">
-                                {timeFilter === 'MONTH' ? `Tháng này - ${selectedYear}` :
-                                    timeFilter === 'QUARTER' ? `Quý này - ${selectedYear}` :
-                                        `Năm ${selectedYear}`}
+                                {getTopProductLabel()}
                             </span>
                             {topProducts?.length > 3 && (
                                 <span className="text-xs text-blue-600">
@@ -287,7 +324,7 @@ export default function Dashboard() {
                         </div>
                     ) : topProducts?.length === 0 ? (
                         <div className="text-center py-8 text-slate-500 text-sm">
-                            Chưa có sản phẩm nào được bán trong năm {selectedYear}
+                            Chưa có sản phẩm nào được bán trong {getTopProductLabel()}
                         </div>
                     ) : (
                         <div className={`${topProducts?.length > 3 ? 'max-h-[280px] overflow-y-auto pr-2' : ''}`}>
@@ -352,6 +389,9 @@ export default function Dashboard() {
                         <h3 className="font-semibold text-slate-900">
                             Thống kê theo {getTimeLabel().toLowerCase()} - Năm {selectedYear}
                         </h3>
+                        <span className="text-xs text-slate-400">
+                            💡 Click vào cột để xem sản phẩm bán chạy
+                        </span>
                     </div>
                     <div className="flex gap-1 bg-slate-100 rounded-lg p-1">
                         {chartOptions.map((option) => {
@@ -389,7 +429,7 @@ export default function Dashboard() {
                                     const value = item[chartData.valueKey] || 0;
                                     const heightPercent = maxValue > 0 ? (value / maxValue) * 100 : 0;
                                     const displayHeight = value > 0 ? Math.max(heightPercent, 8) : 0;
-                                    const isCurrent = timeFilter === 'MONTH' && index === currentMonth && selectedYear === new Date().getFullYear();
+                                    const isCurrent = timeFilter === 'MONTH' && index === currentMonthIndex && selectedYear === new Date().getFullYear();
                                     const isMax = value === maxVal && maxVal > 0;
                                     const isZero = value === 0;
 
@@ -402,18 +442,31 @@ export default function Dashboard() {
                                         }
                                     }
 
+                                    // ✅ Thêm cursor pointer và onClick
+                                    const isClickable = timeFilter === 'MONTH' || timeFilter === 'QUARTER';
+                                    const barIndex = index;
+
                                     return (
                                         <div
                                             key={index}
-                                            className="flex-1 flex flex-col items-center gap-1.5 group relative h-full justify-end"
+                                            className={`flex-1 flex flex-col items-center gap-1.5 group relative h-full justify-end ${isClickable ? 'cursor-pointer' : ''}`}
+                                            onClick={() => {
+                                                if (isClickable) {
+                                                    handleChartBarClick(barIndex);
+                                                }
+                                            }}
                                         >
+                                            {/* Tooltip */}
                                             <div className="absolute -top-8 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
                                                 {item.label}: {chartData.formatValue(value)}
+                                                {isClickable && (
+                                                    <span className="ml-1 text-blue-300">(click)</span>
+                                                )}
                                             </div>
 
                                             {displayHeight > 0 && (
                                                 <div
-                                                    className={`w-full rounded-t transition-all duration-700 ${barColor}`}
+                                                    className={`w-full rounded-t transition-all duration-700 ${barColor} ${isClickable ? 'hover:opacity-80' : ''}`}
                                                     style={{
                                                         height: `${displayHeight}%`,
                                                         minHeight: value > 0 ? '8px' : '0px',

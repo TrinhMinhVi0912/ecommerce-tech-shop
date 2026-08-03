@@ -1,7 +1,6 @@
 // src/pages/product/ProductDetail.jsx
 import { useParams } from "react-router-dom";
-import { GitCompare } from "lucide-react";
-import { useCompare } from "@/features/product/hooks/useCompare";
+import { useState, useEffect } from "react";
 import useProductDetail from "@/features/product/hooks/useProductDetail";
 import useReviews from "@/features/review/hooks/useReviews";
 
@@ -14,10 +13,7 @@ import RelatedProducts from "@/components/product/productdetails/RelatedProducts
 
 export default function ProductDetail() {
     const { id } = useParams();
-    const productId = Number(id);
-
-    // ✅ Lấy các hàm từ useCompare
-    const { openPanel, addProductToCompare, isProductSelected } = useCompare();
+    const [selectedVariant, setSelectedVariant] = useState(null);
 
     const { data: product, loading, error } = useProductDetail(id);
     const { data: reviewsData, loading: reviewsLoading, refetch } = useReviews(id, {
@@ -25,19 +21,12 @@ export default function ProductDetail() {
         pageSize: 8
     });
 
-    const handleCompare = async () => {
-        console.log('🔄 Adding product to compare from detail:', productId);
-
-        try {
-            openPanel();
-            const result = await addProductToCompare(productId);
-            console.log('✅ Add product result:', result);
-        } catch (error) {
-            console.error('❌ Error adding product to compare:', error);
+    // ✅ Khi product load, set variant mặc định là variant đầu tiên
+    useEffect(() => {
+        if (product?.variants && product.variants.length > 0) {
+            setSelectedVariant(product.variants[0]);
         }
-    };
-
-    const isSelected = isProductSelected(productId);
+    }, [product]);
 
     if (loading) {
         return (
@@ -72,27 +61,21 @@ export default function ProductDetail() {
     const reviews = reviewsData?.reviews?.items || [];
     const summary = reviewsData?.summary || { averageRating: 0, totalReviews: 0 };
 
+    // ✅ Lấy variant hiện tại
+    const currentVariant = selectedVariant || product.variants?.[0] || null;
+
+    // ✅ Log để debug
+    console.log('🔍 ProductDetail - selectedVariant:', selectedVariant);
+    console.log('🔍 ProductDetail - currentVariant:', currentVariant);
+
     return (
         <div className="container mx-auto px-4 py-4 max-w-5xl">
-            {/* Nút so sánh */}
-            <div className="flex justify-end mb-2">
-                <button
-                    onClick={handleCompare}
-                    disabled={isSelected}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${isSelected
-                        ? 'bg-blue-100 text-blue-600 cursor-not-allowed'
-                        : 'bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg'
-                        }`}
-                >
-                    <GitCompare size={18} />
-                    {isSelected ? 'Đã thêm vào so sánh' : 'So sánh sản phẩm'}
-                </button>
-            </div>
-
             {/* Product Main Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+                {/* Gallery */}
                 <ProductGallery images={product.images || []} productName={product.name} />
 
+                {/* Product Info */}
                 <div className="space-y-3">
                     <ProductInfo
                         name={product.name}
@@ -101,22 +84,33 @@ export default function ProductDetail() {
                         category={product.categoryResponse}
                     />
 
+                    {/* Price */}
                     <div className="text-xl font-bold text-blue-600">
-                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.basePrice)}
+                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(
+                            currentVariant?.price || product.basePrice
+                        )}
                     </div>
 
+                    {/* Variants */}
                     {product.variants && product.variants.length > 0 && (
-                        <ProductVariants variants={product.variants} />
+                        <ProductVariants
+                            variants={product.variants}
+                            selectedVariant={currentVariant}
+                            onVariantChange={setSelectedVariant}
+                        />
                     )}
 
+                    {/* Actions */}
                     <ProductActions
                         productId={product.productId}
                         basePrice={product.basePrice}
-                        variants={product.variants}
+                        variants={product.variants || []}
+                        selectedVariant={currentVariant}
                     />
                 </div>
             </div>
 
+            {/* Product Description */}
             <div className="mt-4">
                 <h2 className="text-base font-bold mb-2">Mô tả sản phẩm</h2>
                 <div className="bg-white rounded-xl border border-slate-200 p-4 prose max-w-none text-sm">
@@ -124,6 +118,7 @@ export default function ProductDetail() {
                 </div>
             </div>
 
+            {/* Reviews */}
             <ProductReviews
                 productId={product.productId}
                 reviews={reviews}
@@ -134,6 +129,7 @@ export default function ProductDetail() {
                 onReviewUpdated={refetch}
             />
 
+            {/* Related Products */}
             <RelatedProducts categoryId={product.categoryResponse?.categoryId} />
         </div>
     );

@@ -1,6 +1,6 @@
 // src/pages/admin/Banners.jsx
-import React, { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import {
     Plus,
     Search,
@@ -20,9 +20,11 @@ import useUpdateBannerStatus from '@/features/admin/banner/hooks/useUpdateBanner
 import useDeleteBanner from '@/features/admin/banner/hooks/useDeleteBanner';
 import { getImageUrl } from '@/utils/imageUtils';
 import { useToast } from '@/context/ToastContext';
+import ConfirmModal from '@/components/common/ConfirmModal';
 
 export default function Banners() {
-    const toast = useToast();
+    const location = useLocation();
+    const { success, error } = useToast();
     const [searchTerm, setSearchTerm] = useState('');
     const [searchInput, setSearchInput] = useState('');
     const [pageNum, setPageNum] = useState(1);
@@ -34,6 +36,14 @@ export default function Banners() {
     const [updatingId, setUpdatingId] = useState(null);
     const [deletingId, setDeletingId] = useState(null);
     const [localBanners, setLocalBanners] = useState([]);
+    const [refreshKey, setRefreshKey] = useState(0);
+
+    const [confirmModal, setConfirmModal] = useState({
+        isOpen: false,
+        bannerId: null,
+        title: '',
+        message: ''
+    });
 
     const params = useMemo(() => ({
         pageNum,
@@ -53,6 +63,15 @@ export default function Banners() {
             setLocalBanners(data.items);
         }
     }, [data]);
+
+    // ✅ Tự động refresh khi quay lại từ trang tạo banner
+    useEffect(() => {
+        if (location.state?.refresh) {
+            refetch();
+            setRefreshKey(prev => prev + 1); // ✅ Force refresh images
+            window.history.replaceState({}, document.title);
+        }
+    }, [location.state, refetch]);
 
     const banners = localBanners;
     const totalElements = data?.totalElements || 0;
@@ -105,29 +124,49 @@ export default function Banners() {
 
         } catch (error) {
             console.error('Update banner status error:', error);
-            toast.error('Không thể cập nhật trạng thái banner. Vui lòng thử lại.');
+            error('Không thể cập nhật trạng thái banner. Vui lòng thử lại.');
             await refetch();
         } finally {
             setUpdatingId(null);
         }
     };
 
-    const handleDelete = async (bannerId, title) => {
-        if (!window.confirm(`Bạn có chắc muốn xóa banner "${title}"?`)) {
-            return;
-        }
+    const openDeleteConfirm = (bannerId, title) => {
+        setConfirmModal({
+            isOpen: true,
+            bannerId,
+            title: 'Xác nhận xóa banner',
+            message: `Bạn có chắc muốn xóa banner "${title}"? Hành động này không thể hoàn tác.`
+        });
+    };
+
+    const handleConfirmDelete = async () => {
+        const { bannerId } = confirmModal;
+        if (!bannerId) return;
 
         try {
             setDeletingId(bannerId);
             await deleteBanner(bannerId);
-            toast.success('Xóa banner thành công!');
+            success('Xóa banner thành công!');
             await refetch();
         } catch (error) {
             console.error('Delete banner error:', error);
-            toast.error(error.response?.data?.message || 'Không thể xóa banner. Vui lòng thử lại.');
+            error(error.response?.data?.message || 'Không thể xóa banner. Vui lòng thử lại.');
         } finally {
             setDeletingId(null);
+            setConfirmModal({ isOpen: false, bannerId: null, title: '', message: '' });
         }
+    };
+
+    const closeDeleteConfirm = () => {
+        setConfirmModal({ isOpen: false, bannerId: null, title: '', message: '' });
+    };
+
+    // ✅ Hàm lấy image URL với timestamp để tránh cache
+    const getBannerImageUrl = (imageUrl) => {
+        const baseUrl = getImageUrl(imageUrl) || '/images/banners/default.jpg';
+        // Thêm timestamp để tránh cache
+        return `${baseUrl}?t=${Date.now()}`;
     };
 
     const statusOptions = [
@@ -187,6 +226,17 @@ export default function Banners() {
 
     return (
         <div>
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                onClose={closeDeleteConfirm}
+                onConfirm={handleConfirmDelete}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                confirmText="Xóa"
+                cancelText="Hủy"
+                type="danger"
+            />
+
             <div className="flex items-center justify-between mb-6">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900">Quản lý Banner</h1>
@@ -194,6 +244,7 @@ export default function Banners() {
                 </div>
                 <Link
                     to="/admin/banners/create"
+                    state={{ refresh: true }}
                     className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
                 >
                     <Plus size={18} />
@@ -341,13 +392,15 @@ export default function Banners() {
                                 banners.map((banner) => {
                                     const isUpdating = updatingId === banner.bannerId;
                                     const isDeleting = deletingId === banner.bannerId;
-                                    const imageUrl = getImageUrl(banner.imageUrl) || '/images/banners/default.jpg';
+                                    // ✅ Lấy URL ảnh với timestamp để tránh cache
+                                    const imageUrl = getBannerImageUrl(banner.imageUrl);
 
                                     return (
                                         <tr key={banner.bannerId} className="border-b border-slate-100 hover:bg-slate-50 transition">
                                             <td className="px-4 py-3">
                                                 <div className="w-20 h-12 rounded-lg overflow-hidden bg-slate-50 border border-slate-200 flex-shrink-0">
                                                     <img
+                                                        key={refreshKey} // ✅ Force re-render khi refreshKey thay đổi
                                                         src={imageUrl}
                                                         alt={banner.title}
                                                         className="w-full h-full object-cover"
@@ -371,8 +424,8 @@ export default function Banners() {
                                                         onClick={() => handleToggleStatus(banner.bannerId, banner.isActive)}
                                                         disabled={isUpdating}
                                                         className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition ${banner.isActive
-                                                                ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                                                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                                            ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                                                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                                                             } disabled:opacity-50`}
                                                     >
                                                         {banner.isActive ? (
@@ -392,9 +445,8 @@ export default function Banners() {
                                             </td>
                                             <td className="px-4 py-3">
                                                 <div className="flex items-center justify-end gap-1">
-                                                    {/* ✅ Đã xóa nút xem chi tiết (Eye) */}
                                                     <button
-                                                        onClick={() => handleDelete(banner.bannerId, banner.title)}
+                                                        onClick={() => openDeleteConfirm(banner.bannerId, banner.title)}
                                                         disabled={isDeleting}
                                                         className="p-2 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition disabled:opacity-50"
                                                         title="Xóa"

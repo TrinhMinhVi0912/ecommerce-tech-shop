@@ -20,8 +20,6 @@ export const AuthProvider = ({ children }) => {
     const checkAuth = useCallback(async () => {
         const token = localStorage.getItem('accessToken');
 
-        console.log('🔍 [AuthContext] Checking auth...', { token: token ? 'exists' : 'null' });
-
         if (!token) {
             setUser(null);
             setIsAuthenticated(false);
@@ -31,13 +29,10 @@ export const AuthProvider = ({ children }) => {
 
         try {
             const introspectResponse = await authApi.introspect();
-            console.log('🔍 [AuthContext] Introspect response:', introspectResponse.data);
 
             if (introspectResponse.data?.success) {
                 try {
                     const userResponse = await authApi.getCurrentUser();
-                    console.log('🔍 [AuthContext] User response:', userResponse.data);
-
                     if (userResponse.data?.success) {
                         const userData = userResponse.data?.data;
 
@@ -49,7 +44,6 @@ export const AuthProvider = ({ children }) => {
                         setUser(userData);
                         setIsAuthenticated(true);
                         localStorage.setItem('user', JSON.stringify(userData));
-                        console.log('🔍 [AuthContext] User set:', userData);
                     } else {
                         localStorage.removeItem('accessToken');
                         localStorage.removeItem('user');
@@ -81,8 +75,6 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     const loginSuccess = (token, userData) => {
-        console.log('🔍 [AuthContext] Login success:', { token, userData });
-
         if (userData && !userData.role) {
             const role = userData.authorities?.[0]?.authority || 'USER';
             userData.role = role.startsWith('ROLE_') ? role.substring(5) : role;
@@ -94,28 +86,29 @@ export const AuthProvider = ({ children }) => {
         setIsAuthenticated(true);
     };
 
-    // ✅ Thêm phương thức cập nhật user (dùng sau khi upload avatar hoặc update profile)
     const updateUser = (userData) => {
-        console.log('🔍 [AuthContext] Updating user:', userData);
         if (userData) {
             localStorage.setItem('user', JSON.stringify(userData));
             setUser(userData);
         }
     };
 
-    // ✅ Thêm phương thức refresh user từ API
     const refreshUser = useCallback(async () => {
         try {
             const token = localStorage.getItem('accessToken');
-            if (!token) return;
+            if (!token) return null;
 
             const userResponse = await authApi.getCurrentUser();
+            console.log('🔄 Refresh user response:', userResponse.data);
+
             if (userResponse.data?.success) {
                 const userData = userResponse.data?.data;
                 if (userData) {
+                    // ✅ Cập nhật user với avatar mới
                     localStorage.setItem('user', JSON.stringify(userData));
                     setUser(userData);
                     setIsAuthenticated(true);
+                    console.log('✅ User refreshed with new avatar:', userData.avatarUrl);
                     return userData;
                 }
             }
@@ -127,7 +120,6 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     const logout = () => {
-        console.log('🔍 [AuthContext] Logout');
         localStorage.removeItem('accessToken');
         localStorage.removeItem('user');
         setUser(null);
@@ -144,8 +136,8 @@ export const AuthProvider = ({ children }) => {
         loading,
         loginSuccess,
         logout,
-        updateUser,    // ✅ Thêm vào context
-        refreshUser,   // ✅ Thêm vào context
+        updateUser,
+        refreshUser,
         checkAuth
     };
 

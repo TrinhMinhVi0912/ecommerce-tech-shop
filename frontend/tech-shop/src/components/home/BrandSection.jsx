@@ -1,5 +1,5 @@
+// src/components/home/BrandSection.jsx
 import React from 'react';
-import { Link } from 'react-router-dom';
 import useBrands from '@/features/brand/hooks/useBrands';
 
 const BrandSection = () => {
@@ -27,15 +27,14 @@ const BrandSection = () => {
       ) : (
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
           {brands.map((brand) => (
-            <Link
+            <div
               key={brand.brandId}
-              to={`/products?brand=${brand.brandId}`}
-              className="flex items-center justify-center p-4 bg-white rounded-xl border border-slate-100 shadow-sm hover:shadow-md hover:border-blue-500/30 transition-all"
+              className="flex items-center justify-center p-4 bg-white rounded-xl border border-slate-100 shadow-sm hover:shadow-md hover:border-blue-500/30 transition-all cursor-default"
             >
-              <span className="text-sm font-bold text-slate-700 hover:text-blue-600 truncate">
+              <span className="text-sm font-bold text-slate-700 truncate">
                 {brand.name}
               </span>
-            </Link>
+            </div>
           ))}
         </div>
       )}

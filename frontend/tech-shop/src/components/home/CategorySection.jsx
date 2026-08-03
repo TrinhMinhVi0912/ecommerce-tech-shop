@@ -1,3 +1,4 @@
+// src/components/home/CategorySection.jsx
 import React from 'react';
 import { Link } from 'react-router-dom';
 import useCategories from '@/features/category/hooks/useCategories';
@@ -5,7 +6,6 @@ import useCategories from '@/features/category/hooks/useCategories';
 const CategorySection = () => {
   const { data, loading, error } = useCategories({ pageNum: 1, pageSize: 12 });
   const categories = data?.data?.items || [];
-
 
   return (
     <section className="mb-12">
@@ -38,15 +38,14 @@ const CategorySection = () => {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-4">
           {categories.map((cat) => (
-            <Link
+            <div
               key={cat.categoryId}
-              to={`/products?category=${cat.categoryId}`}
-              className="group flex flex-col items-center justify-center p-4 bg-white rounded-xl border border-slate-100 shadow-sm hover:shadow-md hover:border-blue-500/30 transition-all text-center"
+              className="group flex flex-col items-center justify-center p-4 bg-white rounded-xl border border-slate-100 shadow-sm hover:shadow-md hover:border-blue-500/30 transition-all text-center cursor-default"
             >
               <span className="text-sm font-semibold text-slate-700 group-hover:text-blue-600 transition-colors">
                 {cat.name}
               </span>
-            </Link>
+            </div>
           ))}
         </div>
       )}
